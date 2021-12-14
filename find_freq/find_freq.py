@@ -1,29 +1,38 @@
 # functions for finding signal frequency
 
 import numpy
-from math import pi,hypot,ceil
+from math import pi,hypot,ceil,floor
 
 ###################################
 
 # fft maximum
-def find_freq_fft(T,A):
+def find_freq_fft(T,A, fmin=-1, fmax=-1):
   if T.size!=A.size:
     raise ValueError("T and A arrays have different number of points")
 
   N = T.size - 1
   tstep = (T[-1]-T[0])/(T.size-1)
+  df = 1/tstep/(N+1)
+
+  imin=0
+  imax=ceil(N/2)
+  if fmin>0: imin = floor(fmin/df)
+  if fmax>0: imax = ceil(fmax/df)
+
+  if (imax <= imin):
+    raise ValueError("Wrong fmin/fmax setting: %e %e" %(fmin, fmax))
 
   fft = numpy.fft.fft(A)
   fft[0] = 0  # remove constant component
-  f_ind = numpy.argmax(numpy.abs(fft[0:int(N/2)]))
+  f_ind = numpy.argmax(numpy.abs(fft[imin:imax])) + imin
 
-  return f_ind / tstep / (N+1), fft, f_ind
+  return f_ind*df, fft, f_ind
 
 ###################################
 
 # fit fft maximum by 3-point parabola
-def find_freq_fftfit_q(T,A):
-  freq, fft, f_ind = find_freq_fft(T,A)
+def find_freq_fftfit_q(T,A, fmin=-1, fmax=-1):
+  freq, fft, f_ind = find_freq_fft(T,A, fmin, fmax)
   v1 = abs(fft[f_ind-1])
   v2 = abs(fft[f_ind])
   v3 = abs(fft[f_ind+1])
@@ -32,10 +41,14 @@ def find_freq_fftfit_q(T,A):
 
 ###################################
 
-# fit fft near maximum
-def find_freq_fftfit_l(T,A):
+# Fit fft near maximum.
+# This is similar method which I use for fitting
+# decaying signals in
+# https://github.com/slazav/pico_osc/tree/master/modules/fit_signal
 
-  freq1, fft1, f_ind1 = find_freq_fft(T,A)
+def find_freq_fftfit_l(T,A, fmin=-1, fmax=-1):
+
+  freq1, fft1, f_ind1 = find_freq_fft(T,A, fmin, fmax)
 
   # Now we should solve problem with too "pure"
   # signals where we have maxinun and zeros near it.
@@ -47,7 +60,7 @@ def find_freq_fftfit_l(T,A):
   N = T.size
   k = int(N/2/f_ind1)
 
-  freq2, fft2, f_ind2 = find_freq_fft(T[0:-k],A[0:-k])
+  freq2, fft2, f_ind2 = find_freq_fft(T[0:-k],A[0:-k], fmin, fmax)
 
   # choose signal with smaller maximum
   # larger side points:
@@ -144,12 +157,11 @@ def calc_fourier(freq, T,A, harm=[1]):
 
 from scipy.optimize import minimize
 
-def find_freq_fmax(T,A):
+def find_freq_fmax(T,A, fmin=-1, fmax=-1):
 
   # initial frequency value:
-  freq, fft, f_ind = find_freq_fft(T,A)
+  freq, fft, f_ind = find_freq_fft(T,A, fmin, fmax)
   df = 1/(T[-1]-T[0]) # frequency resolution
-
   def minfunc(freq, T,A):
     return -numpy.abs(calc_fourier(freq[0], T,A))
 
