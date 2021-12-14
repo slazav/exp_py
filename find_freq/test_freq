@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+
+# test find_freq functions
+
+from find_freq import *
+from math import pi
+import matplotlib.pyplot as plt
+
+tmax = 300
+pts = 30000
+freq0 = 4.1234212
+noise = 0.1
+T = numpy.linspace(0,tmax,pts)
+
+dfreq = 1/tmax # fft frequency resolution
+
+# use different frequencies freq0..freq0+freq_res
+fnum = 6
+cols = 'rgbcmyk'
+for fi in range(fnum):
+  freq = freq0 + fi/fnum*dfreq
+  A = numpy.sin(2*pi*freq*T)
+
+  # use different noise values 0..1
+  nnum = 30
+  nmax = 2
+  noise = numpy.linspace(0,nmax,nnum)
+  freq_res0 = numpy.zeros(nnum)
+  freq_res1 = numpy.zeros(nnum)
+  freq_res2 = numpy.zeros(nnum)
+  freq_res3 = numpy.zeros(nnum)
+  for ni in range(nnum):
+    B = numpy.random.normal(0, noise[ni], pts)
+
+    freq_res0[ni], fft, ind = find_freq_fft(T,A+B)
+    freq_res0[ni] -= freq
+    freq_res1[ni] = find_freq_fftfit_q(T,A+B) - freq
+    freq_res2[ni] = find_freq_fftfit_l(T,A+B) - freq
+    freq_res3[ni] = find_freq_fmax(T,A+B) - freq
+
+  plt.plot(noise, freq_res0, 'b.-')
+  plt.plot(noise, freq_res1, 'r.-')
+  plt.plot(noise, freq_res2, 'g.-')
+  plt.plot(noise, freq_res3, 'y.-')
+
+plt.ylabel('frequency')
+plt.xlabel('noise/signal ratio')
+plt.legend()
+plt.savefig('test_freq.png')
+
