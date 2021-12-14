@@ -43,8 +43,13 @@ for fi in range(fnum):
   plt.plot(noise, freq_res2, 'g.-')
   plt.plot(noise, freq_res3, 'y.-')
 
-plt.ylabel('frequency')
+plt.plot(numpy.nan,numpy.nan, 'b.-', label="fft")
+plt.plot(numpy.nan,numpy.nan, 'r.-', label="fftfit_q")
+plt.plot(numpy.nan,numpy.nan, 'g.-', label="fftfit_l")
+plt.plot(numpy.nan,numpy.nan, 'y.-', label="fmax")
+
+plt.ylabel('frequency error')
 plt.xlabel('noise/signal ratio')
 plt.legend()
-plt.savefig('test_freq.png')
+plt.savefig('find_freq.png')
 
