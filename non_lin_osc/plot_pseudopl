@@ -1,0 +1,36 @@
+#!/usr/bin/python3
+
+import numpy
+import math
+import scipy.optimize
+import scipy.integrate
+import matplotlib.pyplot as plt
+from non_lin_osc import *
+
+# example of pseudoplastic oscillator
+
+w0 = 1
+tau = 0.5
+vc = 1
+k = 0.5
+FF = numpy.array([0.5,1,2,3,4])
+ww = numpy.linspace(0.1,2,100)
+
+
+amp = numpy.zeros(ww.size)
+ph  = numpy.zeros(ww.size)
+
+for F in FF:
+
+  for i in range(ww.size):
+    w = ww[i]
+    uv = nonlin_osc_solve0(w, F, osc_pseudopl1, [w0,tau,vc,k], [0,0])
+    amp[i] = numpy.hypot(uv[0],uv[1])/F
+    ph[i]  = numpy.arctan2(uv[1],uv[0])
+
+  plt.plot(ww, amp, label=F)
+
+plt.xlabel('frequency')
+plt.ylabel('amplitude/drive')
+plt.legend()
+plt.savefig('plot_pseudopl.png')

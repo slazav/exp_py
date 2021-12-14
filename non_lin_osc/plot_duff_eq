@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+
+import numpy
+import math
+import matplotlib.pyplot as plt
+from non_lin_osc import *
+
+# Plot Van der Pol coordinates for  Duffing oscillator
+# (u',v') vector as a function of (u,v)
+
+w0 = 1
+tau = 5
+F = 2.5
+a = 0.03
+
+N = 40
+u = numpy.linspace(-10,10,N)
+v = numpy.linspace(-10,10,N)
+uu, vv = numpy.meshgrid(u, v)
+du = numpy.empty_like(uu)
+dv = numpy.empty_like(vv)
+
+ww = numpy.arange(0.1,2.5,0.1)
+for k in range(ww.size):
+  w = ww[k]
+  plt.clf()
+
+  for i in range(u.size):
+    for j in range(v.size):
+      du[i][j],dv[i][j] = nonlin_osc_eq_duff([u[i],v[j]], w, F, w0, tau, a)
+
+  ## nice trajectory plot
+  #plt.streamplot(uu, vv, du, dv, linewidth=1, arrowsize=0.8, 
+  #                  density=3, color='red')
+
+  amp = numpy.hypot(du,dv)
+  plt.quiver(uu, vv, dv/amp, du/amp, linewidth=1, color='blue', scale=40)
+
+  plt.xlabel('u')
+  plt.ylabel('v')
+  plt.legend()
+  plt.savefig('duff_%02d.png' %(k))
+

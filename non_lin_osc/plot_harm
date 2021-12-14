@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+
+import numpy
+import math
+import matplotlib.pyplot as plt
+from non_lin_osc import *
+
+# Test non-liniar oscillator calculation using harmonic oscillator
+# First method: calculation for arbitrary oscillator
+# Second method: Duffing oscillator, averaging over period is done analytically.
+
+w0  = 1 # frequency
+tau = 2 # dumping
+F   = 1 # driving force
+ww = numpy.linspace(0.1,2,100)
+
+
+amp = numpy.zeros(ww.size)
+ph  = numpy.zeros(ww.size)
+amp1 = numpy.zeros(ww.size)
+ph1  = numpy.zeros(ww.size)
+
+for i in range(ww.size):
+  w = ww[i]
+
+  # non-linear solver
+  uv = nonlin_osc_solve0(w,F, osc_harm, [w0,tau], [0,0])
+  amp[i] = numpy.hypot(uv[0],uv[1])/F
+  ph[i]  = numpy.arctan2(uv[1],uv[0])
+
+  # analytical solution
+  amp1[i] = F/numpy.sqrt((w0**2-w**2)**2 + (w/tau)**2)
+  ph1[i]  = -math.atan2(w/tau, w0**2-w**2) # check signs!
+
+plt.plot(ww, amp, label="ampl")
+plt.plot(ww, ph,  label="phase")
+plt.plot(ww, amp1, 'k--',  label="theory")
+plt.plot(ww, ph1, 'k--')
+
+plt.xlabel('frequency')
+plt.ylabel('amplitude/drive')
+plt.legend()
+plt.savefig('plot_harm.png')

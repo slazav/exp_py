@@ -1,0 +1,76 @@
+#!/usr/bin/python3
+
+import numpy
+import math
+from scipy.integrate import solve_bvp,trapz
+import matplotlib.pyplot as plt
+
+# Consider a linear oscillatior:
+#
+#   mx'' + kx + gx' + F cos(wt) = 0
+#
+# Let's solve it on t=[0..2pi/w] assuming periodic BC: x(0)=x(2pi/w), x'(0)=x'(2pi/w)
+
+############################
+# See https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_bvp.html
+
+# function
+# X - two component vector, [x,x']
+# P - parameters: [m, k, g, F, w]
+def fun(t, X):
+  global m,k,g,F,w, R
+
+  RHS = - k/m*X[0]\
+        - g/m*X[1] / numpy.sqrt(R + X[1]**2)\
+        - F/m*numpy.cos(w*t)
+
+  return numpy.vstack((X[1], RHS))
+
+# BC
+def bc(Xa, Xb):
+  return numpy.array([Xa[0]-Xb[0], Xa[1]-Xb[1]])
+
+############################
+
+# Oscillator parameters:
+m = 1
+k = 10
+g = 1
+F = 1
+w = 1
+R = 0.001
+
+
+def calc_osc(m,k,g,F,w,R):
+  # initial mesh:
+  t0 = numpy.linspace(0, 2*math.pi/w, 5)
+  x0 = numpy.zeros((2, t0.size))
+  res = solve_bvp(fun, bc, t0, x0)
+
+  # result, calculated in 100-point mesh:
+  t = numpy.linspace(0, 2*math.pi/w, 100)
+  x = res.sol(t)[0]
+
+  # calculate 3 first harmonics:
+  nh = 3;
+  Hr = numpy.zeros(nh)
+  Hi = numpy.zeros(nh)
+  HH = numpy.zeros((nh,t.size))
+  for h in range(0,nh):
+    Sin = numpy.sin((h+1)*t*w)
+    Cos = numpy.cos((h+1)*t*w)
+    Hr[h] = trapz(Cos*x, t)/math.pi
+    Hi[h] = trapz(Sin*x, t)/math.pi
+    HH[h,:]  = Cos*Hr[h] + Sin*Hi[h]
+  return t,x, Hr,Hi,HH
+
+t,x,Hr,Hi,HH = calc_osc(m,k,g,F,w,R);
+
+# plot everything
+plt.plot(t, x, 'r.-', label="solution")
+plt.plot(t, HH[0], label="harm-1")
+plt.plot(t, HH[1], label="harm-2")
+plt.plot(t, HH[2], label="harm-3")
+plt.legend()
+plt.savefig('solve_pde.png')
+

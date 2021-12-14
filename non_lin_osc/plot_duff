@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+
+import numpy
+import math
+import matplotlib.pyplot as plt
+from non_lin_osc import *
+
+# Test non-liniar oscillator calculation using Duffing oscillator
+# First method: calculation for arbitrary oscillator
+# Second method: Duffing oscillator, averaging over period is done analytically.
+
+w0 = 1
+tau = 2
+a = -0.0028
+FF = numpy.array([1,2,4,5])
+ww = numpy.linspace(0.1,2,100)
+
+
+for F in FF:
+  amp = numpy.zeros(ww.size)
+  ph  = numpy.zeros(ww.size)
+  amp1 = numpy.zeros(ww.size)
+  ph1  = numpy.zeros(ww.size)
+
+  for i in range(ww.size):
+    w = ww[i]
+
+    uv = nonlin_osc_solve0(w,F, osc_duffing, [w0,tau,a], [0,0])
+    amp[i] = numpy.hypot(uv[0],uv[1])/F
+    ph[i]  = numpy.arctan2(uv[1],uv[0])
+
+    uv = nonlin_osc_solve_duff(w,F, w0, tau, a, [0,0])
+    amp1[i] = numpy.hypot(uv[0],uv[1])/F
+    ph1[i]  = numpy.arctan2(uv[1],uv[0])
+
+  plt.plot(ww, amp, label=F)
+  plt.plot(ww, amp1, 'k--')
+
+
+plt.xlabel('frequency')
+plt.ylabel('amplitude/drive')
+plt.legend()
+plt.savefig('plot_duff.png')
