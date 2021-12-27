@@ -3,8 +3,61 @@
 import numpy
 import math
 import scipy.optimize
-import scipy.integrate
+from scipy.integrate import solve_bvp,trapz,quad
 
+#######################################################
+#######################################################
+
+############################
+# Solve ODE of a non-linear oscillator driven by periodic force:
+#   x'' + func(x, x', pars) = F*cos(w*t)
+# on one period (2pi/w) with periodic BC, x(0)=x(T), x'(0)=x'(T).
+# Returns full solution as a cubic spline (see solve_bvp()).
+# Arguments:
+#   func - function
+#   pars - parameters for the function
+#   F - drive amplitude
+#   w - drive frequency
+# Return:
+#   result from solve_bvp()
+#
+def osc_solve_per_func(func, pars, F, w):
+
+  def bc(Xa, Xb):
+    return numpy.array([Xa[0]-Xb[0], Xa[1]-Xb[1]])
+
+  def rhs_func(t, X):
+    RHS = -func(X[0], X[1], pars) - F*numpy.cos(w*t)
+    return numpy.vstack((X[1], RHS))
+
+  # initial mesh:
+  t0 = numpy.linspace(0, 2*math.pi/w, 5)
+  x0 = numpy.zeros((2, t0.size))
+  return solve_bvp(rhs_func, bc, t0, x0)
+
+############################
+# Calculate N-th harmonic of a function returned by
+# osc_solve_per()
+#
+def osc_solve_per_harm(res, N):
+  T=res.x[-1]
+  W=2*math.pi/T * N
+  fx = lambda t: numpy.cos(W*t)*res.sol(t)[0]
+  fy = lambda t: numpy.sin(W*t)*res.sol(t)[0]
+  x = quad(fx, 0, T, limit=200)[0]
+  y = quad(fy, 0, T, limit=200)[0]
+  return (2*x/T, 2*y/T)
+
+############################
+# Calculate response of a non-linear oscillator on the driving frequency.
+# Combination of osc_solve_per_func() and osc_solve_per_harm() calls.
+#
+def osc_solve_per(func, pars, F, w):
+  res = osc_solve_per_func(func, pars, F, w)
+  return osc_solve_per_harm(res,1)
+
+
+#######################################################
 #######################################################
 
 # Equilibriun function of a non-linear oscillator
@@ -32,8 +85,8 @@ def nonlin_osc_eq(uv,w, F, func, fpars):
   y = w*(-uv[0]*sp-uv[1]*cp);
   z = (F*cp - func(x,y,fpars) + w**2*x)/w;
 
-  return [-scipy.integrate.trapz(z*sp, p),\
-          -scipy.integrate.trapz(z*cp, p)];
+  return [-trapz(z*sp, p),\
+          -trapz(z*cp, p)];
 
 #######################################################
 

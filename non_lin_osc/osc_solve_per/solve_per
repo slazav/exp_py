@@ -1,0 +1,52 @@
+#!/usr/bin/python3
+
+import numpy
+import math
+import matplotlib.pyplot as plt
+import sys
+sys.path.append('..')
+from non_lin_osc import *
+
+# test for osc_solve_per_* functions
+
+def fun1(x,v,p):
+  w0 = p[0]
+  dw = p[1]
+  R  = p[2]
+  return w0**2*x + dw*v/numpy.sqrt(R + v**2)
+
+# Oscillator parameters:
+m = 1
+k = 10
+g = 1
+F = 1
+w = 1
+R = 0.001
+
+# calculate periodic solution
+res = osc_solve_per_func(fun1, (numpy.sqrt(k/m),g/m,R), F, w)
+
+# result, calculated in 100-point mesh:
+t = numpy.linspace(0, 2*math.pi/w, 100)
+x = res.sol(t)[0]
+
+# calculate 3 first harmonics:
+nh = 3;
+Hr = numpy.zeros(nh)
+Hi = numpy.zeros(nh)
+HH = numpy.zeros((nh,t.size))
+for h in range(0,nh):
+  T = (h+1)*t*w
+  Sin = numpy.sin(T)
+  Cos = numpy.cos(T)
+  (Hr[h], Hi[h]) = osc_solve_per_harm(res, h+1)
+  HH[h,:]  = Cos*Hr[h] + Sin*Hi[h]
+
+# plot everything
+plt.plot(t, x, 'r.-', label="solution")
+plt.plot(t, HH[0], label="harm-1")
+plt.plot(t, HH[1], label="harm-2")
+plt.plot(t, HH[2], label="harm-3")
+plt.legend()
+plt.savefig('solve_per.png')
+
