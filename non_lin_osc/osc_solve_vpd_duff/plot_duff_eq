@@ -3,6 +3,9 @@
 import numpy
 import math
 import matplotlib.pyplot as plt
+
+import sys
+sys.path.append('..')
 from non_lin_osc import *
 
 # Plot Van der Pol coordinates for  Duffing oscillator
@@ -27,7 +30,7 @@ for k in range(ww.size):
 
   for i in range(u.size):
     for j in range(v.size):
-      du[i][j],dv[i][j] = nonlin_osc_eq_duff([u[i],v[j]], w, F, w0, tau, a)
+      du[i][j],dv[i][j] = osc_solve_vdp_duff_eq([u[i],v[j]], w0, tau, a, F,w)
 
   ## nice trajectory plot
   #plt.streamplot(uu, vv, du, dv, linewidth=1, arrowsize=0.8, 

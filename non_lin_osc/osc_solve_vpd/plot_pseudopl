@@ -2,9 +2,10 @@
 
 import numpy
 import math
-import scipy.optimize
-import scipy.integrate
 import matplotlib.pyplot as plt
+
+import sys
+sys.path.append('..')
 from non_lin_osc import *
 
 # example of pseudoplastic oscillator
@@ -24,7 +25,8 @@ for F in FF:
 
   for i in range(ww.size):
     w = ww[i]
-    uv = nonlin_osc_solve0(w, F, osc_pseudopl1, [w0,tau,vc,k], [0,0])
+    uv = osc_solve_vdp(osc_pseudopl1, [w0,tau,vc,k], F,w)
+
     amp[i] = numpy.hypot(uv[0],uv[1])/F
     ph[i]  = numpy.arctan2(uv[1],uv[0])
 

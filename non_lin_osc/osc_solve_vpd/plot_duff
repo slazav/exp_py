@@ -1,0 +1,60 @@
+#!/usr/bin/python3
+
+import numpy
+import math
+import matplotlib.pyplot as plt
+
+import sys
+sys.path.append('..')
+from non_lin_osc import *
+
+# Test osc_solve_vdp_* functions for Duffing oscillator
+
+w0 = 1
+tau = 5
+aa = [-0.015, 0, 0.02, 0.1]
+F  = 1
+
+for a in aa:
+
+  # go left->right or back depending on sign of a:
+  if (a>=0):
+    ww = numpy.linspace(0.1,2,200)
+  else:
+    ww = numpy.linspace(2,0.1,200)
+
+  amp0 = numpy.zeros(ww.size)
+  amp1 = numpy.zeros(ww.size)
+  amp2 = numpy.zeros(ww.size)
+  ph1  = numpy.zeros(ww.size)
+  ph2  = numpy.zeros(ww.size)
+
+  for i in range(ww.size):
+    w = ww[i]
+
+    # analytical solution (min branch)
+    rr = osc_duff_amp(w,F,w0,tau, a)/F
+    amp0[i] = numpy.min(rr)
+
+    # use prefious point as initial condition:
+    if i>0 or not numpy.isnan(amp1[i-1]):
+      a0 = amp1[i-1]; p0=ph1[i-1]
+    else:
+      a0 = 0; p0 = 0;
+    uv = osc_solve_vdp(osc_duffing, [w0,tau,a], F,w, a0,p0)
+    amp1[i] = numpy.hypot(uv[0],uv[1])/F
+    ph1[i]  = numpy.arctan2(uv[1],uv[0])
+
+    # use zero initial condition
+    uv = osc_solve_vdp(osc_duffing, [w0,tau,a], F,w)
+    amp2[i] = numpy.hypot(uv[0],uv[1])/F
+    ph2[i]  = numpy.arctan2(uv[1],uv[0])
+
+  plt.plot(ww, amp0, 'k--')
+  plt.plot(ww, amp1, 'r-')
+  plt.plot(ww, amp2, 'b-')
+
+plt.xlabel('frequency')
+plt.ylabel('amplitude/drive')
+plt.legend()
+plt.savefig('plot_duff.png')

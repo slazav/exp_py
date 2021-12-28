@@ -9,22 +9,15 @@ from non_lin_osc import *
 
 # test for osc_solve_per_* functions
 
-def fun1(x,v,p):
-  w0 = p[0]
-  dw = p[1]
-  R  = p[2]
-  return w0**2*x + dw*v/numpy.sqrt(R + v**2)
 
 # Oscillator parameters:
-m = 1
-k = 10
-g = 1
-F = 1
-w = 1
-R = 0.001
+w0  = 1
+tau = 2
+a   = 0.045
+F   = 6
+w   = 0.5
 
-# calculate periodic solution
-res = osc_solve_per_func(fun1, (numpy.sqrt(k/m),g/m,R), F, w)
+res = osc_solve_per_func(osc_duffing, (1, 2, 0.045), 5, w)
 
 # result, calculated in 100-point mesh:
 t = numpy.linspace(0, 2*math.pi/w, 100)
