@@ -15,30 +15,22 @@ from scipy.integrate import solve_bvp,trapz,quad
 
 ## harmonic osc
 def osc_harm(x,dx, pars):
-  w0  = pars[0] # resonant frequency
-  tau = pars[1] # relaxation time
+  (w0,tau)  = pars
   return w0**2*x + dx/tau
 
 ## duffing osc
 def osc_duffing(x,dx, pars):
-  w0  = pars[0] # resonant frequency
-  tau = pars[1] # relaxation time at low drive
-  a   = pars[2] # non-linear parameter
+  (w0,tau, a) = pars
   return w0**2*x + dx/tau + a*x**3
 
 ## pseudoplastic osc N1
 def osc_pseudopl1(x,dx, pars):
-  w0  = pars[0] # resonant frequency
-  tau = pars[1] # relaxation time at low velocuty
-  vc  = pars[2] # critical velocity
-  k   = pars[3] # relaxation factor for large velocity
+  (w0,tau,vc,k) = pars
   return w0**2*x + dx/tau * (k - (1-k) * vc/numpy.sqrt(vc**2 + dx**2))
 
 ## pseudoplastic osc N2
 def osc_pseudopl2(x,dx, pars):
-  w0  = pars[0] # resonant frequency
-  tau = pars[1] # relaxation time at low velocuty
-  vc  = pars[2] # critical velocity
+  (w0,tau,vc) = pars
   return w0**2*x + dx/tau * vc/numpy.sqrt(vc**2 + dx**2)
 
 

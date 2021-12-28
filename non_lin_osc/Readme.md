@@ -6,7 +6,7 @@ x'' + func(x,x',pars) = F*cos(w*t)
 
 #### Examples of oscillators
 
-* harmonic osc, `osc_harm(x,dx, (w0,tau))`
+* Harmonic osc, `osc_harm(x,dx, (w0,tau))`
 
 Parameters: 
 - `w0` -- resonant frequency
@@ -14,7 +14,7 @@ Parameters:
 
 Formula: `func(x,v) = w0**2*x + v/tau`
 
-* duffing osc, `osc_duffing(x,dx, (w0,tau,a))`
+* Duffing osc, `osc_duffing(x,dx, (w0,tau,a))`
 
 - `w0`  - resonant frequency
 - `tau` - relaxation time at low drive
@@ -22,11 +22,13 @@ Formula: `func(x,v) = w0**2*x + v/tau`
 
 Formula: `func(x,v) = w0**2*x + v/tau + a*x**3`
 
-* pseudoplastic osc N1, `osc_pseudopl1(x,dx, (w0,tau,vc,k))`
+* Pseudoplastic osc N1, `osc_pseudopl1(x,dx, (w0,tau,vc,k))`.
+Not sure that it has any physicar meaning, I just tried to write a model
+with a reasonable velocity-dependent dumping.
 
 Formula: `func(x,v) = w0**2*x + v/tau * (k - (1-k) * vc/numpy.sqrt(vc**2 + v**2))`
 
-* pseudoplastic osc N2, `osc_pseudopl2(x,dx, (w0,tau,vc))`
+* Pseudoplastic osc N2, `osc_pseudopl2(x,dx, (w0,tau,vc))`
 
 Formula: `func(x,v) = w0**2*x + v/tau * vc/numpy.sqrt(vc**2 + v**2)`
 
@@ -34,8 +36,9 @@ Formula: `func(x,v) = w0**2*x + v/tau * vc/numpy.sqrt(vc**2 + v**2)`
 
 #### Solving DE with periodic BC
 
-This is the most general approach for finding response of a non-linear oscillator.
-It is slow and in some cases not accurate.
+This is the most general approach for finding response of a non-linear
+oscillator. It is slow and in some cases not accurate (see example of the
+problem in `osc_solve_per/plot_duff_problem`).
 
 * `res = osc_solve_per_func(func, pars, F, w)`
 
@@ -78,10 +81,13 @@ This is enough for simple small non-linearities,
 for duffing oscillator it does not work properly
 (one should integrate trajectories in u-v space instead)
 
+
 #### Duffing oscillator
 
-Formulas for Duffing oscillator. They should be fully equivalent to `osc_solve_vdp_*`,
-but faster.
+Formulas for Duffing oscillator. Functions `osc_solve_vdp_duff*` should
+be fully equivalent to `osc_solve_vdp_*`, but much faster (they use analytical
+formulas instead of numerical averaging).
+A good explanation can be found in http://www.scholarpedia.org/article/Duffing_oscillator .
 
 * `osc_solve_vdp_duff_eq(uv, w0, tau, a, F, w)` -- Equivalent of `osc_solve_vdp_eq`.
 
