@@ -19,13 +19,18 @@ from non_lin_osc import *
 
 files=[("1631005710.872335000.dat", 1.2),
        ("1631007779.022099000.dat", 1.4),
-       ("1631009845.281481000.dat", 1.6)
+       ("1631009845.281481000.dat", 1.6),
 #       ("1631011914.236227000.dat", 1.8),
-#       ("1631012948.641888000.dat", 1.8))
+#       ("1631012948.641888000.dat", 1.8),
 ]
 
 dofit = 1
 plotxy = 1
+
+def osc_func(x,v, pars):
+  (w0,tau, a) = pars
+  return w0**2*x + v/tau + a*x**3
+
 
 #########################
 
@@ -50,6 +55,8 @@ for (n,d) in files:
 # initial conditions and bounds
 def init_osc(F,X,Y,D):
   im = numpy.argmax(numpy.hypot(X/D,Y/D))
+  il = numpy.argmin(F)
+  ir = numpy.argmax(F)
 
   wmin = 2*math.pi*numpy.min(F)
   wmax = 2*math.pi*numpy.max(F)
@@ -60,12 +67,13 @@ def init_osc(F,X,Y,D):
 
   w0ini = 2*math.pi*F[im] # (fmax+fmin)/2
   dwini = (wmax-wmin)/5
-  Axini = (minx+maxx)/2
-  Ayini = (miny+maxy)/2
+  Axini = (X[ir]/D[ir]+X[il]/D[il])/2
+  Ayini = (Y[ir]/D[ir]+Y[il]/D[il])/2
+
   xm = (X[im]/D[im]-Axini)+1j*(Y[im]/D[im]-Ayini)
   Cxini = numpy.real(1j*w0ini*dwini*xm) # (maxx-minx)
   Cyini = numpy.imag(1j*w0ini*dwini*xm) # (maxy-miny)
-  aini = -742
+  aini = -642
 
   w0bnd = (wmin, wmax)
   dwbnd = ((wmax-wmin)/100, (wmax-wmin))
@@ -82,11 +90,10 @@ def init_osc(F,X,Y,D):
 
 #####
 
-def calc_osc(pars, fittype, F,D,X,Y):
+def calc_osc(pars, fittype, F,D):
   # unpack parameters
   (w0,dw,Ax,Ay,Cx,Cy,a) = pars
   W  = 2*math.pi * F
-
 
   # linear oscillator with constant offset
   # constant C is chosen in such a way that in resonance X = (Ax + 1j*Ay) + (Cx + 1j*Cy)
@@ -100,10 +107,9 @@ def calc_osc(pars, fittype, F,D,X,Y):
 
   XY = numpy.full_like(W, 0, dtype='complex')
   for i in range(F.size):
-    # initial values:
-    a0 = math.hypot(X[i], Y[i])
-    p0 = math.atan2(Y[i], X[i])
-    uv = osc_solve_vdp(osc_duffing, [w0, 1/dw, a], D[i]*Ca, W[i], 0,0)
+    if numpy.isscalar(D): d = D
+    else: d=D[i]
+    uv = osc_solve_vdp(osc_func, [w0, 1/dw, a], d*Ca, W[i])
     XY[i] = uv[0] + 1j*uv[1]
 
   # rotate phase and add offset
@@ -121,7 +127,7 @@ def calc_osc(pars, fittype, F,D,X,Y):
 # X any Y data and calculated by calc_osc() values.
 # Skip NaN values which can appear for a non-linear oscillator
 def minfunc(pars, fittype, F,D,X,Y):
-  (xx,yy) = calc_osc(pars, fittype, F,D,X,Y)
+  (xx,yy) = calc_osc(pars, fittype, F,D)
   i1=numpy.logical_not(numpy.isnan(xx))
   i2=numpy.logical_not(numpy.isnan(yy))
   sum = numpy.linalg.norm(X[i1]-xx[i1]) + numpy.linalg.norm(Y[i2]-yy[i2])
@@ -145,7 +151,7 @@ if dofit:
   pars = res.x
 
 #### plot data
-ff = numpy.linspace(numpy.min(F), numpy.max(F), 100)
+ff = numpy.linspace(numpy.min(F), numpy.max(F), 200)
 
 for i in range(len(dd)):
   c = cols[i%len(cols)]
@@ -155,13 +161,13 @@ for i in range(len(dd)):
   X1 = XX[ii]
   Y1 = YY[ii]
 
-  xx,yy = calc_osc(pars, fittype, F1, DD[ii], X1, Y1)
+  xx,yy = calc_osc(pars, fittype, ff, dd[i])
 
   if (plotxy):  # X,Y vs F
     plt.plot(F1, X1, c+'*', label=dd[i])
     plt.plot(F1, Y1, c+'^')
-    plt.plot(F1, xx, c+'-')
-    plt.plot(F1, yy, c+'-')
+    plt.plot(ff, xx, c+'-')
+    plt.plot(ff, yy, c+'--')
   else:    # X vs Y
     plt.plot(X1, Y1, c+'*', label=dd[i])
     plt.plot(xx, yy, c+'.-')
