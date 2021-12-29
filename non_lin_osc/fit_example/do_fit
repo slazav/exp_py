@@ -1,0 +1,173 @@
+#!/usr/bin/python3
+
+import numpy
+import math
+import matplotlib.pyplot as plt
+import scipy.optimize
+#import argparse
+
+import sys
+sys.path.insert(1, '../')
+from non_lin_osc import *
+
+# Example of simultaneous fit of multiple non-linear resonance curves.
+# Here I use signals from TA wires measured at F4 in summer 2021.
+# For thin wire data there is an additional difficulty:
+# reference-to-input coupling in lock-ins. This will probably
+# require additional fitting parameters: amplitude and phase of
+# this coupling.
+
+files=[("1631005710.872335000.dat", 1.2),
+       ("1631007779.022099000.dat", 1.4),
+       ("1631009845.281481000.dat", 1.6)
+#       ("1631011914.236227000.dat", 1.8),
+#       ("1631012948.641888000.dat", 1.8))
+]
+
+dofit = 1
+plotxy = 1
+
+#########################
+
+
+FF=[] # freq values from all files
+XX=[] # all x
+YY=[] # all y
+DD=[] # all drive values
+
+## read data from all files
+for (n,d) in files:
+  F,X,Y = numpy.loadtxt(n, usecols=(1,2,3), unpack=True, comments='#')
+  # How to do appending better?
+  FF=numpy.append(FF, F)
+  XX=numpy.append(XX, X*1e6) # Vrms -> uVrms
+  YY=numpy.append(YY, Y*1e6)
+  DD=numpy.append(DD, numpy.full_like(X, d))
+
+
+#########################
+
+# initial conditions and bounds
+def init_osc(F,X,Y,D):
+  im = numpy.argmax(numpy.hypot(X/D,Y/D))
+
+  wmin = 2*math.pi*numpy.min(F)
+  wmax = 2*math.pi*numpy.max(F)
+  minx = numpy.min(X/D)
+  maxx = numpy.max(X/D)
+  miny = numpy.min(Y/D)
+  maxy = numpy.max(Y/D)
+
+  w0ini = 2*math.pi*F[im] # (fmax+fmin)/2
+  dwini = (wmax-wmin)/5
+  Axini = (minx+maxx)/2
+  Ayini = (miny+maxy)/2
+  xm = (X[im]/D[im]-Axini)+1j*(Y[im]/D[im]-Ayini)
+  Cxini = numpy.real(1j*w0ini*dwini*xm) # (maxx-minx)
+  Cyini = numpy.imag(1j*w0ini*dwini*xm) # (maxy-miny)
+  aini = -742
+
+  w0bnd = (wmin, wmax)
+  dwbnd = ((wmax-wmin)/100, (wmax-wmin))
+  Axbnd = (minx, maxx)
+  Aybnd = (miny, maxy)
+  Cm = 2*math.hypot(Cxini,Cyini)
+  Cxbnd = (-Cm, Cm)
+  Cybnd = (-Cm, Cm)
+  abnd = (-1e5,1e5) 
+
+  pars = (w0ini, dwini, Axini, Ayini, Cxini, Cyini, aini)
+  bnds = (w0bnd, dwbnd, Axbnd, Aybnd, Cxbnd, Cybnd, abnd)
+  return (pars, bnds)
+
+#####
+
+def calc_osc(pars, fittype, F,D,X,Y):
+  # unpack parameters
+  (w0,dw,Ax,Ay,Cx,Cy,a) = pars
+  W  = 2*math.pi * F
+
+
+  # linear oscillator with constant offset
+  # constant C is chosen in such a way that in resonance X = (Ax + 1j*Ay) + (Cx + 1j*Cy)
+#  XY = (Ax + 1j*Ay) + D*(Cx + 1j*Cy)*f0*df/(f0**2 - F**2 + 1j*F*df)
+
+  # For each point calculate response of a non-linear oscillator.
+  # Use X and Y as initial conditions.
+  # D is a drive factor which should be applied to the amplitude Cx,Cy
+  Ca = math.hypot(Cx, Cy)
+  Cp = math.atan2(Cy, Cx)
+
+  XY = numpy.full_like(W, 0, dtype='complex')
+  for i in range(F.size):
+    # initial values:
+    a0 = math.hypot(X[i], Y[i])
+    p0 = math.atan2(Y[i], X[i])
+    uv = osc_solve_vdp(osc_duffing, [w0, 1/dw, a], D[i]*Ca, W[i], 0,0)
+    XY[i] = uv[0] + 1j*uv[1]
+
+  # rotate phase and add offset
+  XY = XY*numpy.exp(1j*Cp) + Ax + 1j*Ay
+
+  # interpolate NaN values
+  i1 = numpy.isnan(XY)
+  i2 = numpy.logical_not(i1)
+  XY[i1] = numpy.interp(F[i1], F[i2], XY[i2])
+
+  return (numpy.real(XY), numpy.imag(XY))
+
+
+# Function for minimization. Returns RMS difference of
+# X any Y data and calculated by calc_osc() values.
+# Skip NaN values which can appear for a non-linear oscillator
+def minfunc(pars, fittype, F,D,X,Y):
+  (xx,yy) = calc_osc(pars, fittype, F,D,X,Y)
+  i1=numpy.logical_not(numpy.isnan(xx))
+  i2=numpy.logical_not(numpy.isnan(yy))
+  sum = numpy.linalg.norm(X[i1]-xx[i1]) + numpy.linalg.norm(Y[i2]-yy[i2])
+  print(">>> ", pars, sum)
+  return sum
+
+#########################
+
+# drives (I do not like numpy array conversions. Simple things look like puzzles!)
+dd = numpy.unique(numpy.array(numpy.array(files)[:,1], dtype='double'))
+cols = "rgbcmy"
+fittype="lin"
+
+#########################
+#fit data
+
+(pars, bnds) = init_osc(FF,XX,YY, DD)
+if dofit:
+  res = scipy.optimize.minimize(minfunc, pars,(fittype, FF,DD,XX,YY),
+     bounds=bnds, options={'disp': False, 'maxiter': 1000})
+  pars = res.x
+
+#### plot data
+ff = numpy.linspace(numpy.min(F), numpy.max(F), 100)
+
+for i in range(len(dd)):
+  c = cols[i%len(cols)]
+  # select data for a single drive value:
+  ii = (DD==dd[i])
+  F1 = FF[ii]
+  X1 = XX[ii]
+  Y1 = YY[ii]
+
+  xx,yy = calc_osc(pars, fittype, F1, DD[ii], X1, Y1)
+
+  if (plotxy):  # X,Y vs F
+    plt.plot(F1, X1, c+'*', label=dd[i])
+    plt.plot(F1, Y1, c+'^')
+    plt.plot(F1, xx, c+'-')
+    plt.plot(F1, yy, c+'-')
+  else:    # X vs Y
+    plt.plot(X1, Y1, c+'*', label=dd[i])
+    plt.plot(xx, yy, c+'.-')
+    plt.plot(xx[0], yy[0], 'ro', markersize=5)
+
+plt.xlabel('freq, Hz')
+plt.ylabel('x/drive, y/drive')
+plt.legend()
+plt.savefig("fit.png")
