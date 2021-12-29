@@ -46,7 +46,7 @@ def osc_pseudopl2(x,dx, pars):
 # Return:
 #   result from solve_bvp()
 #
-def osc_solve_per_func(func, pars, F, w, a0=0, p0=0):
+def osc_solve_per_func(func, pars, F, w, a0=0, p0=0, nper=1):
 
   def bc(Xa, Xb):
     return numpy.array([Xa[0]-Xb[0], Xa[1]-Xb[1]])
@@ -57,15 +57,18 @@ def osc_solve_per_func(func, pars, F, w, a0=0, p0=0):
     return numpy.vstack((X[1], RHS))
 
   # initial mesh:
-  t0 = numpy.linspace(0, 2*numpy.pi/w, 50)
+  t0 = numpy.linspace(0, nper*2*numpy.pi/w, 50)
 
   # initial guess
   x0 = numpy.zeros((2, t0.size))
   if a0 != 0:
     x0[0,:] =  a0*numpy.cos(w*t0+p0)
     x0[1,:] = -a0*w*numpy.sin(w*t0+p0)
+  res = solve_bvp(rhs_func, bc, t0, x0, tol=1e-4, max_nodes=10000)
+  res.nper = nper
+  res.w = w
 
-  return solve_bvp(rhs_func, bc, t0, x0, tol=1e-4, max_nodes=10000)
+  return res
 
 ############################
 # Calculate N-th harmonic of a function returned by
@@ -74,7 +77,7 @@ def osc_solve_per_func(func, pars, F, w, a0=0, p0=0):
 def osc_solve_per_harm(res, N):
   if res.status>0: return (numpy.nan,numpy.nan)
   T=res.x[-1]
-  W=2*math.pi/T*N
+  W=res.w*N
 
 #  fx = numpy.cos(W*res.x)*res.y[0]
 #  fy = numpy.sin(W*res.x)*res.y[0]

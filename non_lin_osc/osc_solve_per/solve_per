@@ -14,13 +14,14 @@ from non_lin_osc import *
 w0  = 1
 tau = 2
 a   = 0.045
-F   = 6
+F   = 5
 w   = 0.5
+nper = 3
 
-res = osc_solve_per_func(osc_duffing, (1, 2, 0.045), 5, w)
+res = osc_solve_per_func(osc_duffing, (w0, tau, a), F, w, nper = nper)
 
 # result, calculated in 100-point mesh:
-t = numpy.linspace(0, 2*math.pi/w, 100)
+t = numpy.linspace(0, 2*math.pi/w*nper, 100*nper)
 x = res.sol(t)[0]
 
 # calculate 3 first harmonics:

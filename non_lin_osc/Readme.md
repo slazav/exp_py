@@ -36,15 +36,18 @@ Formula: `func(x,v) = w0**2*x + v/tau * vc/numpy.sqrt(vc**2 + v**2)`
 
 #### Solving DE with periodic BC
 
-This is the most general approach for finding response of a non-linear
+This is the most simple approach for finding response of a non-linear
 oscillator. It is slow and in some cases not accurate (see example of the
 problem in `osc_solve_per/plot_duff_problem`).
+Also it is known that Duffing oscillator can have multi-period oscillations,
+here we skip them.
 
-* `res = osc_solve_per_func(func, pars, F, w)`
+* `res = osc_solve_per_func(func, pars, F, w, nper=1)`
 
-Solve the oscillator equation on one period using periodic BC (`x(0)=x(T)`, `x'(0)=x'(T)`), return
-result from solve_bvp(). Use `res.sol(t)[0]` to access smooth function, `res.x` and `res.y` for
-final mesh nodes and function values.
+Solve the oscillator equation on `nper` periods using periodic BC
+(`x(0)=x(T)`, `x'(0)=x'(T)`), return result structure from solve_bvp()
+with additional fields (`nper, w`). Use `res.sol(t)[0]` to access smooth
+function, `res.x` and `res.y` for final mesh nodes and function values.
 
 
 * `osc_solve_per_harm(res, N)`
