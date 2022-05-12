@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+
+import graphene
+
+graphene.set_args(('device_c', 'ask', 'db'))
+
+print(graphene.get_prev('w2um', 1652310926.1))
+print(graphene.get('w2um', 1652310926.1))
+
+a = graphene.get_range('w2um', 1652310926, 1652311908)
+print(a)
