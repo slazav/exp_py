@@ -4,6 +4,7 @@ import numpy
 gr_args = ['device_c', 'ask', 'db']
 
 def set_args(a):
+  global gr_args
   gr_args = list(a)
 
 def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1)):
