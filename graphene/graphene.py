@@ -30,8 +30,8 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1)):
   args = list(gr_args)
   args.extend((cmd, name))
 
-  if type(t1) == int or type(t1) == float: t1='%f'%(t1)
-  if type(t2) == int or type(t2) == float: t2='%f'%(t2)
+  if type(t1) != str: t1='%f'%(t1)
+  if type(t2) != str: t2='%f'%(t2)
 
   if cmd=='get_range': args.extend((t1,t2))
   if cmd=='get_next':  args.append(t1)
