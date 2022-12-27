@@ -1,0 +1,56 @@
+#!/usr/bin/python3
+
+# A simple example for Reading/Fitting/Saving/Plotting data.
+# Just for copy-and-past to other projects.
+
+import numpy
+import scipy.optimize
+import matplotlib.pyplot as plt
+
+# Use class instead of fit function, because it can
+# contain additional data
+class fitobj_t:
+  n1=0
+  def __init__(self): pass
+  def fitfunc(self, x, A,B,C,dA):
+    ret=A + B*x + C*x**2
+    ret[self.n1:]+=dA
+    return ret
+
+## Read data
+X1,Y1 = numpy.loadtxt("data1.txt", usecols=(0,1), unpack=True)
+X2,Y2 = numpy.loadtxt("data2.txt", usecols=(0,1), unpack=True)
+
+X=numpy.append(X1,X2)
+Y=numpy.append(Y1,Y2)
+
+## Fit
+fitobj=fitobj_t()
+fitobj.n1=X1.size;  # additional data
+
+par=(1,1,1,1)
+res = scipy.optimize.curve_fit(
+   fitobj.fitfunc, X, Y, par)
+par = res[0]
+err = numpy.sqrt(numpy.diag(res[1]))
+
+## Save data
+xx = numpy.linspace(0,250, 100);
+yy = fitobj.fitfunc(xx, *par)
+numpy.savetxt("data_o.txt", numpy.column_stack((xx,yy)),
+  fmt="%.2f %.2f", header="x  y")
+
+## Plot
+plt.plot(X1,Y1, "r*")
+plt.plot(X2,Y2, "b*")
+plt.plot(xx,yy, "r-")
+plt.plot(xx,yy+par[3], "b-")
+plt.plot(xx,yy-par[0], "k-")
+plt.gcf().set_size_inches(12, 12)
+plt.savefig("data.png", dpi=100)
+plt.close()
+
+# Print fit result
+for i in range(4):
+  n=('A', 'B', 'C', 'dA')[i]
+  print ('%2s = %f +/- %f' %(n, par[i],err[i]))
