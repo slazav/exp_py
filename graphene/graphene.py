@@ -15,17 +15,19 @@ def set_cache(a):
   global cache_dir
   cache_dir = a
 
-### Do arditrary graphene command
-def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1)):
+### Do arbitrary graphene command
+def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1), fname=""):
 
   ### do we want to use cache?
-  fname=""
   if cache_dir != "":
     if not os.path.isdir(cache_dir): os.mkdir(cache_dir)
-    fname = cache_dir + "/" + name + "_" + cmd + "_" + str(t1) + "_" + str(t2)
+    if fname=="":
+      fname = name + "_" + cmd + "_" + str(t1) + "_" + str(t2)
+    fname = cache_dir + "/" + fname
     if os.path.isfile(fname):
       data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=True)
       return data
+
   ### build command: gr_args + <command> + <db name> + <times>
   args = list(gr_args)
   args.extend((cmd, name))
@@ -57,15 +59,15 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1)):
 
 ###
 
-def get_range(name, t1, t2, cols=(0,1)):
-  return graphene_cmd('get_range', name, t1=t1, t2=t2, cols=cols)
+def get_range(name, t1, t2, cols=(0,1), fname=""):
+  return graphene_cmd('get_range', name, t1=t1, t2=t2, cols=cols, fname=fname)
 
-def get_prev(name, t, cols=(0,1)):
-  return graphene_cmd('get_prev', name, t2=t, cols=cols)
+def get_prev(name, t, cols=(0,1), fname=""):
+  return graphene_cmd('get_prev', name, t2=t, cols=cols, fname=fname)
 
-def get_next(name, t, cols=(0,1)):
-  return graphene_cmd('get_next', name, t1=t, cols=cols)
+def get_next(name, t, cols=(0,1), fname=""):
+  return graphene_cmd('get_next', name, t1=t, cols=cols, fname=fname)
 
-def get(name, t, cols=(0,1)):
-  return graphene_cmd('get', name, t2=t, cols=cols)
+def get(name, t, cols=(0,1), fname=""):
+  return graphene_cmd('get', name, t2=t, cols=cols, fname=fname)
 
