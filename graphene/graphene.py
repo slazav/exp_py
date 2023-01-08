@@ -1,5 +1,6 @@
 import subprocess
 import numpy
+import re
 import os.path
 
 gr_args = ['device_c', 'ask', 'db']
@@ -71,3 +72,10 @@ def get_next(name, t, cols=(0,1), fname=""):
 def get(name, t, cols=(0,1), fname=""):
   return graphene_cmd('get', name, t2=t, cols=cols, fname=fname)
 
+###
+
+# Convert time from human-readable to graphene-readable form
+def timeconv(t):
+  if t=="now" or t=="now_s" or t=="inf": return t
+  if re.fullmatch('[0-9]+[+-]?', t): return t
+  return subprocess.check_output(['date', '+%s', '-d', t]).decode('utf-8')[0:-1]
