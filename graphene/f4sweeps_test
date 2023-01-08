@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+
+import f4sweeps
+
+f4sweeps.get_sweeps('w1bh', '2023-01-08 00:00', None)
