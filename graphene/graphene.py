@@ -17,7 +17,7 @@ def set_cache(a):
   cache_dir = a
 
 ### Do arbitrary graphene command
-def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1), fname=""):
+def graphene_cmd(cmd, name, t1=0, t2='+inf', unpack=True, cols=(0,1), fname=""):
 
   ### do we want to use cache?
   if cache_dir != "":
@@ -26,7 +26,7 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1), fname=""):
       fname = name + "_" + cmd + "_" + str(t1) + "_" + str(t2)
     fname = cache_dir + "/" + fname
     if os.path.isfile(fname):
-      data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=True)
+      data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
       return data
 
   ### build command: gr_args + <command> + <db name> + <times>
@@ -50,7 +50,7 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1), fname=""):
       print(proc.stdout.read(), file=open(fname, "w"))
     else:
       fname = proc.stdout
-    data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=True)
+    data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
     rc = proc.wait()
     if rc:
       print('> Graphene error:', proc.stderr.read())
@@ -60,17 +60,17 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', cols=(0,1), fname=""):
 
 ###
 
-def get_range(name, t1, t2, cols=(0,1), fname=""):
-  return graphene_cmd('get_range', name, t1=t1, t2=t2, cols=cols, fname=fname)
+def get_range(name, t1, t2, cols=(0,1), unpack=True, fname=""):
+  return graphene_cmd('get_range', name, t1=t1, t2=t2, cols=cols, unpack=unpack, fname=fname)
 
-def get_prev(name, t, cols=(0,1), fname=""):
-  return graphene_cmd('get_prev', name, t2=t, cols=cols, fname=fname)
+def get_prev(name, t, cols=(0,1), unpack=True, fname=""):
+  return graphene_cmd('get_prev', name, t2=t, cols=cols, unpack=unpack, fname=fname)
 
-def get_next(name, t, cols=(0,1), fname=""):
-  return graphene_cmd('get_next', name, t1=t, cols=cols, fname=fname)
+def get_next(name, t, cols=(0,1), unpack=True, fname=""):
+  return graphene_cmd('get_next', name, t1=t, cols=cols, unpack=unpack, fname=fname)
 
-def get(name, t, cols=(0,1), fname=""):
-  return graphene_cmd('get', name, t2=t, cols=cols, fname=fname)
+def get(name, t, cols=(0,1), unpack=True, fname=""):
+  return graphene_cmd('get', name, t2=t, cols=cols, unpack=unpack, fname=fname)
 
 ###
 
