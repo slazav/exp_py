@@ -68,7 +68,10 @@ def get_sweeps_(name, pars):
     fit = graphene.get_range(name, t1p, t2p, cols=None, unpack=False).copy()
     if fit.size<19: fit.resize(19)
 
-    amp = numpy.hypot(fit[7],fit[9])/fit[11]/fit[13]
+    if all(fit[[11,13]] != 0):
+      amp = numpy.hypot(fit[7],fit[9])/fit[11]/fit[13]
+    else:
+      amp = float("nan")
 
     # get demag field
     Bdemag = graphene.get_prev('demag_pc:f2', tcent, cols=1)
