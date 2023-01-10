@@ -35,6 +35,11 @@ def get_sweeps(name, t1, t2):
     (t1p, dtp, f1, f2, n, s, s0, d, vpp, ph) = pars[i,:]
     t2p = t1p+dtp
 
+    tcent = (t2p+t1p)/2
+    fcent = (f2+f1)/2
+    tspan = abs(t2p-t1p)
+    fspan = abs(f2-f1)
+
     # Too old sweep.
     # Note: special timestamps (inf, now, <t>+) will fail here!
     if t2p < float(t1): continue
@@ -47,9 +52,16 @@ def get_sweeps(name, t1, t2):
     fit = graphene.get_range(name, t1p, t2p, cols=None, unpack=False).copy()
     if fit.size<19: fit.resize(19)
 
+    amp = numpy.hypot(fit[7],fit[9])/fit[11]/fit[13]
+
+    # get demag field
+    Bdemag = graphene.get_prev('demag_pc:f2', tcent, cols=1)
+
     sweep = {
       't1': t1p, 't2': t2p,
-      'f1':  f1,  'f2':  f2, 'n': n,
+      'tspan': tspan, 'tcent': tcent,
+      'f1':  f1, 'f2':  f2, 'n': n,
+      'fspan': fspan, 'fcent': fcent,
       'step': s, 'step0': s0, 'dir': d,
       'drive': vpp, 'phase': ph,
       'T': ts, 'F': fs, 'X': xs, 'Y': ys,
@@ -60,8 +72,10 @@ def get_sweeps(name, t1, t2):
       'fit_D': fit[9],   'fit_D_err': fit[10],
       'fit_f0': fit[11], 'fit_f0_err': fit[12],
       'fit_df': fit[13], 'fit_df_err': fit[14],
-      'fit_C': fit[15],  'fit_C_err': fit[16],
-      'fit_D': fit[17],  'fit_D_err': fit[18],
+      'fit_E': fit[15],  'fit_E_err': fit[16],
+      'fit_F': fit[17],  'fit_F_err': fit[18],
+      'fit_amp': amp,
+      'demag': Bdemag
     }
 
     sweeps.append(sweep)
