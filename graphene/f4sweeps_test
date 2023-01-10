@@ -2,4 +2,20 @@
 
 import f4sweeps
 
-f4sweeps.get_sweeps('w1bh', '2023-01-08 00:00', None)
+print("get_sweep: ")
+data = f4sweeps.get_sweep('w1bh', '2023-01-08 00:00')
+for d in data: print (d["t1"])
+
+print("get_sweep (empty): ")
+data = f4sweeps.get_sweep('w1bh', '2023-01-01 00:00')
+for d in data: print (d["t1"])
+
+print("get_sweep_range (5 sweeps): ")
+data = f4sweeps.get_sweep_range('w1bh', '2023-01-08 00:00', '2023-01-08 00:15')
+for d in data: print (d["t1"])
+
+tlist=('2023-01-08 00:00', '2023-01-08 00:15', '2023-01-08 00:25', '2023-01-08 00:35')
+print("get_sweep_list (4 sweeps): ")
+data = f4sweeps.get_sweep_list('w1bh',tlist)
+for d in data: print (d["t1"])
+

@@ -13,24 +13,44 @@ import graphene
 # 3. F-sweep extracted from <W>_sweeps database:
 #    T,F,X,Y
 
-def get_sweeps(name, t1, t2):
+def get_sweep(name, t1):
   t1 = graphene.timeconv(t1)
+  pars = graphene.get_prev(name + '_pars', t1, unpack=False, cols=None)
+  # Note: special timestamps (inf, now, <t>+) will fail here!
+  if pars[0] + pars[1] < float(t1): return (); # too old
+  return get_sweeps_(name, pars)
 
-  # find sweep
-  if t2=='' or t2==None:
-    pars = graphene.get_prev(name + '_pars', t1, unpack=False, cols=None)
-  else:
-    t2 = graphene.timeconv(t2)
-    pars = graphene.get_range(name + '_pars', t1, t2, unpack=False, cols=None)
+def get_sweep_range(name, t1, t2):
+  t1 = graphene.timeconv(t1)
+  t2 = graphene.timeconv(t2)
+  pars = graphene.get_range(name + '_pars', t1, t2, unpack=False, cols=None)
+  return get_sweeps_(name, pars)
+
+def get_sweep_list(name, tlist):
+  pars = numpy.empty((0,10))
+  for t in tlist:
+    t = graphene.timeconv(t)
+    p = graphene.get_prev(name + '_pars', t, unpack=False, cols=None)
+    # Note: special timestamps (inf, now, <t>+) will fail here!
+    if p[0] + p[1] < float(t): continue; # too old
+    pars = numpy.append(pars, numpy.reshape(p,(1,10)), axis=0)
+  return get_sweeps_(name, pars)
+
+
+#######################
+# Internal function for getting sweeps using
+# sweep parameters from <name>_pars database.
+
+def get_sweeps_(name, pars):
+  sweeps=[]
 
   # no sweeps
-  if pars.size == 0: return ()
+  if pars.size == 0: return sweeps
 
   # single sweep
   if len(pars.shape) == 1:
     pars = numpy.reshape(pars, (1,-1))
 
-  sweeps=[]
   for i in range(pars.shape[0]):
     (t1p, dtp, f1, f2, n, s, s0, d, vpp, ph) = pars[i,:]
     t2p = t1p+dtp
@@ -39,10 +59,6 @@ def get_sweeps(name, t1, t2):
     fcent = (f2+f1)/2
     tspan = abs(t2p-t1p)
     fspan = abs(f2-f1)
-
-    # Too old sweep.
-    # Note: special timestamps (inf, now, <t>+) will fail here!
-    if t2p < float(t1): continue
 
     # Get sweep points
     (ts,fs,xs,ys) = graphene.get_range(name + '_sweeps', t1p, t2p, cols=None)
@@ -77,7 +93,7 @@ def get_sweeps(name, t1, t2):
       'fit_amp': amp,
       'demag': Bdemag
     }
-
     sweeps.append(sweep)
 
   return sweeps
+
