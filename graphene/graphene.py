@@ -1,4 +1,5 @@
 import subprocess
+import warnings
 import numpy
 import re
 import os.path
@@ -26,7 +27,9 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', unpack=True, cols=(0,1), fname=""):
       fname = name + "_" + cmd + "_" + str(t1) + "_" + str(t2)
     fname = cache_dir + "/" + fname
     if os.path.isfile(fname):
-      data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
+      with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
       return data
 
   ### build command: gr_args + <command> + <db name> + <times>
@@ -50,7 +53,9 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', unpack=True, cols=(0,1), fname=""):
       print(proc.stdout.read(), file=open(fname, "w"))
     else:
       fname = proc.stdout
-    data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
+    with warnings.catch_warnings():
+      warnings.simplefilter("ignore")
+      data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
     rc = proc.wait()
     if rc:
       print('> Graphene error:', proc.stderr.read())
