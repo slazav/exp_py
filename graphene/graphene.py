@@ -17,6 +17,7 @@ def set_cache(a):
   global cache_dir
   cache_dir = a
 
+
 ### Do arbitrary graphene command
 def graphene_cmd(cmd, name, t1=0, t2='+inf', unpack=True, cols=(0,1), fname=""):
 
@@ -65,25 +66,20 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', unpack=True, cols=(0,1), fname=""):
 
 ###
 
-def get_range(name, t1, t2, cols=(0,1), unpack=True, fname=""):
-  return graphene_cmd('get_range', name, t1=t1, t2=t2,
-                       cols=cols, unpack=unpack, fname=fname)
+def get_range(name, t1, t2, **kwargs):
+  return graphene_cmd('get_range', name, t1=t1, t2=t2, **kwargs)
 
-def get_wrange(name, t1, t2, cols=(0,1), unpack=True, fname=""):
-  return graphene_cmd('get_wrange', name, t1=t1, t2=t2,
-                       cols=cols, unpack=unpack, fname=fname)
+def get_wrange(name, t1, t2, **kwargs):
+  return graphene_cmd('get_wrange', name, t1=t1, t2=t2, **kwargs)
 
-def get_prev(name, t, cols=(0,1), unpack=True, fname=""):
-  return graphene_cmd('get_prev', name, t2=t,
-                       cols=cols, unpack=unpack, fname=fname)
+def get_prev(name, t, **kwargs):
+  return graphene_cmd('get_prev', name, t2=t, **kwargs)
 
-def get_next(name, t, cols=(0,1), unpack=True, fname=""):
-  return graphene_cmd('get_next', name, t1=t,
-                       cols=cols, unpack=unpack, fname=fname)
+def get_next(name, t, **kwargs):
+  return graphene_cmd('get_next', name, t1=t, **kwargs),
 
-def get(name, t, cols=(0,1), unpack=True, fname=""):
-  return graphene_cmd('get', name, t2=t,
-                       cols=cols, unpack=unpack, fname=fname)
+def get(name, t, **kwargs):
+  return graphene_cmd('get', name, t2=t, **kwargs)
 
 ###
 
