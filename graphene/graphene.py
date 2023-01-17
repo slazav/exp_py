@@ -31,7 +31,7 @@ def set_cache(a):
 
 
 ### Do arbitrary graphene command
-def graphene_cmd(cmd, name, t1=0, t2='inf', unpack=True, cols=(0,1), fname=""):
+def graphene_cmd(cmd, name, t1=0, t2='inf', unpack=False, usecols=None, fname=""):
 
   ### do we want to use cache?
   if cache_dir != "":
@@ -42,7 +42,7 @@ def graphene_cmd(cmd, name, t1=0, t2='inf', unpack=True, cols=(0,1), fname=""):
     if os.path.isfile(fname):
       with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
+        data = numpy.loadtxt(fname, comments="#", usecols=usecols, unpack=unpack)
       return data
 
   # convert timestammpt to strings if needed
@@ -78,7 +78,7 @@ def graphene_cmd(cmd, name, t1=0, t2='inf', unpack=True, cols=(0,1), fname=""):
       fname = proc.stdout
     with warnings.catch_warnings():
       warnings.simplefilter("ignore")
-      data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
+      data = numpy.loadtxt(fname, comments="#", usecols=usecols, unpack=unpack)
     rc = proc.wait()
     if rc:
       print('> Graphene error:', proc.stderr.read())
