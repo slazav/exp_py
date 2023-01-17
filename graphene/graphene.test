@@ -2,7 +2,8 @@
 
 import graphene
 
-graphene.set_args(('device_c', 'ask', 'db'))
+#graphene.set_args(('device_c', 'ask', 'db'))
+graphene.set_args('xyz_f4')
 graphene.set_cache('.graphene')
 
 print(graphene.get_prev('w2um', 1652310926.1))

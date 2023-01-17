@@ -4,13 +4,25 @@ import numpy
 import re
 import os.path
 
+sources = {
+  "local":   ('device_c', 'ask', 'db'),
+  "ssh_f4b": ('ssh', 'f4b', 'device_c', 'ask', 'db'),
+  "xyz_f4":  ('wget', 'http://slazav.xyz:8095/', '-O', '-', '-o', '/dev/null'),
+  "xyz_f2":  ('wget', 'http://slazav.xyz:8091/', '-O', '-', '-o', '/dev/null'),
+  "xyz_dd":  ('wget', 'http://slazav.xyz:8085/', '-O', '-', '-o', '/dev/null'),
+}
+
 gr_args = ['device_c', 'ask', 'db']
 cache_dir = ''
 
-### Set program for accessing graphene, as separate arguments:
+### Set program for accessing graphene
+### - list of arguments or name from sources table
 def set_args(a):
   global gr_args
-  gr_args = list(a)
+  if type(a) == list or type(a) == tuple:
+    gr_args = list(a)
+  else:
+    gr_args = sources[a]
 
 ### Set cache folder (empty for no caching)
 def set_cache(a):
@@ -19,7 +31,7 @@ def set_cache(a):
 
 
 ### Do arbitrary graphene command
-def graphene_cmd(cmd, name, t1=0, t2='+inf', unpack=True, cols=(0,1), fname=""):
+def graphene_cmd(cmd, name, t1=0, t2='inf', unpack=True, cols=(0,1), fname=""):
 
   ### do we want to use cache?
   if cache_dir != "":
@@ -33,17 +45,27 @@ def graphene_cmd(cmd, name, t1=0, t2='+inf', unpack=True, cols=(0,1), fname=""):
         data = numpy.loadtxt(fname, comments="#", usecols=cols, unpack=unpack)
       return data
 
-  ### build command: gr_args + <command> + <db name> + <times>
-  args = list(gr_args)
-  args.extend((cmd, name))
-
+  # convert timestammpt to strings if needed
   if type(t1) != str: t1='%f'%(t1)
   if type(t2) != str: t2='%f'%(t2)
 
-  if cmd=='get_range': args.extend((t1,t2))
-  if cmd=='get_next':  args.append(t1)
-  if cmd=='get_prev':  args.append(t2)
-  if cmd=='get':       args.append(t2)
+  ### build command: gr_args + <command> + <db name> + <times>
+  args = list(gr_args)
+  if len(gr_args)>1 and gr_args[0] == 'wget':
+    if args[1][-1] != '/': args[1] += '/'
+    args[1] += "%s?name=%s"%(cmd,name)
+    if cmd=='get_wrange': args[1]+="&t1=%s&t2=%s"%(t1,t2)
+    if cmd=='get_range':  args[1]+="&t1=%s&t2=%s"%(t1,t2)
+    if cmd=='get_next':   args[1]+="&t1=%s"%(t1)
+    if cmd=='get_prev':   args[1]+="&t2=%s"%(t2)
+    if cmd=='get':        args[1]+="&t2=%s"%(t2)
+  else:
+    args.extend((cmd, name))
+    if cmd=='get_wrange': args.extend((t1,t2))
+    if cmd=='get_range': args.extend((t1,t2))
+    if cmd=='get_next':  args.append(t1)
+    if cmd=='get_prev':  args.append(t2)
+    if cmd=='get':       args.append(t2)
 
   ### run the command and load values
   with subprocess.Popen(args,
