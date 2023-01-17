@@ -17,7 +17,7 @@ cache_dir = ''
 
 ### Set program for accessing graphene
 ### - list of arguments or name from sources table
-def set_args(a):
+def set_source(a):
   global gr_args
   if type(a) == list or type(a) == tuple:
     gr_args = list(a)
