@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 # contain additional data
 class fitobj_t:
   n1=0
-  def __init__(self): pass
+  def __init__(self,n1):
+    self.n1=n1
   def fitfunc(self, x, A,B,C,dA):
     ret=A + B*x + C*x**2
     ret[self.n1:]+=dA
@@ -24,9 +25,8 @@ X2,Y2 = numpy.loadtxt("data2.txt", usecols=(0,1), unpack=True)
 X=numpy.append(X1,X2)
 Y=numpy.append(Y1,Y2)
 
-## Fit
-fitobj=fitobj_t()
-fitobj.n1=X1.size;  # additional data
+## Fit object with additional data
+fitobj=fitobj_t(X1.size)
 
 par=(1,1,1,1)
 res = scipy.optimize.curve_fit(
