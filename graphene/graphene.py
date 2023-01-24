@@ -13,7 +13,7 @@ sources = {
 }
 
 gr_args = ['device_c', 'ask', 'db']
-cache_dir = ''
+cache_dir = 'data'
 
 ### Set program for accessing graphene
 ### - list of arguments or name from sources table
@@ -45,7 +45,7 @@ def graphene_cmd(cmd, name, t1=0, t2='inf', unpack=False, usecols=None, fname=""
         data = numpy.loadtxt(fname, comments="#", usecols=usecols, unpack=unpack)
       return data
 
-  # convert timestammpt to strings if needed
+  # convert timestammps to strings if needed
   if type(t1) != str: t1='%f'%(t1)
   if type(t2) != str: t2='%f'%(t2)
 
