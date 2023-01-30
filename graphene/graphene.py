@@ -31,13 +31,20 @@ def set_cache(a):
 
 
 ### Do arbitrary graphene command
-def graphene_cmd(cmd, name, t1=0, t2='inf', unpack=False, usecols=None, fname=""):
+def graphene_cmd(cmd, name, t1=0, t2='inf', dt=0, unpack=False, usecols=None, fname=""):
+
+  # convert timestammps to strings if needed
+  if type(t1) != str: t1='%f'%(t1)
+  if type(t2) != str: t2='%f'%(t2)
+
+  t1 = timeconv(t1)
+  t2 = timeconv(t2)
 
   ### do we want to use cache?
   if cache_dir != "":
     if not os.path.isdir(cache_dir): os.mkdir(cache_dir)
     if fname=="":
-      fname = name + "_" + cmd + "_" + str(t1) + "_" + str(t2)
+      fname = name + "_" + cmd + "_" + t1 + "_" + t2
     fname = cache_dir + "/" + fname
     if os.path.isfile(fname):
       with warnings.catch_warnings():
@@ -45,24 +52,21 @@ def graphene_cmd(cmd, name, t1=0, t2='inf', unpack=False, usecols=None, fname=""
         data = numpy.loadtxt(fname, comments="#", usecols=usecols, unpack=unpack)
       return data
 
-  # convert timestammps to strings if needed
-  if type(t1) != str: t1='%f'%(t1)
-  if type(t2) != str: t2='%f'%(t2)
 
   ### build command: gr_args + <command> + <db name> + <times>
   args = list(gr_args)
   if len(gr_args)>1 and gr_args[0] == 'wget':
     if args[1][-1] != '/': args[1] += '/'
     args[1] += "%s?name=%s"%(cmd,name)
-    if cmd=='get_wrange': args[1]+="&t1=%s&t2=%s"%(t1,t2)
-    if cmd=='get_range':  args[1]+="&t1=%s&t2=%s"%(t1,t2)
+    if cmd=='get_wrange': args[1]+="&t1=%s&t2=%s&dt=%f"%(t1,t2,dt)
+    if cmd=='get_range':  args[1]+="&t1=%s&t2=%s&dt=%f"%(t1,t2,dt)
     if cmd=='get_next':   args[1]+="&t1=%s"%(t1)
     if cmd=='get_prev':   args[1]+="&t2=%s"%(t2)
     if cmd=='get':        args[1]+="&t2=%s"%(t2)
   else:
     args.extend((cmd, name))
-    if cmd=='get_wrange': args.extend((t1,t2))
-    if cmd=='get_range': args.extend((t1,t2))
+    if cmd=='get_wrange': args.extend((t1,t2,"%f"%(dt)))
+    if cmd=='get_range': args.extend((t1,t2,"%f"%(dt)))
     if cmd=='get_next':  args.append(t1)
     if cmd=='get_prev':  args.append(t2)
     if cmd=='get':       args.append(t2)
