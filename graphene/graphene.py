@@ -112,5 +112,5 @@ def get(name, t, **kwargs):
 # Convert time from human-readable to graphene-readable form
 def timeconv(t):
   if t=="now" or t=="now_s" or t=="inf": return t
-  if re.fullmatch('[0-9]+[+-]?', t): return t
+  if re.fullmatch('[0-9\.]+[+-]?', t): return t
   return subprocess.check_output(['date', '+%s', '-d', t]).decode('utf-8')[0:-1]
