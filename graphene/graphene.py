@@ -105,6 +105,8 @@ def graphene_load2(ff, unpack=False, usecols=None):
   # convert to numpy
   data = numpy.array(data, dtype='float')
 
+  if data.size==0: return data
+
   # take only needed indices
   if usecols!=None:
     data = numpy.take(data, usecols)
