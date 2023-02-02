@@ -155,7 +155,7 @@ def get_prev(name, t, **kwargs):
   return graphene_cmd('get_prev', name, t2=t, **kwargs)
 
 def get_next(name, t, **kwargs):
-  return graphene_cmd('get_next', name, t1=t, **kwargs),
+  return graphene_cmd('get_next', name, t1=t, **kwargs)
 
 def get(name, t, **kwargs):
   return graphene_cmd('get', name, t2=t, **kwargs)
