@@ -30,6 +30,11 @@ def set_cache(a):
   global cache_dir
   cache_dir = a
 
+### Convert time from human-readable to graphene-readable form
+def timeconv(t):
+  if t=="now" or t=="now_s" or t=="inf": return t
+  if re.fullmatch('[0-9\.]+[+-]?', t): return t
+  return subprocess.check_output(['date', '+%s', '-d', t]).decode('utf-8')[0:-1]
 
 ###############################################################
 # Communication with graphene, read-only operations.
@@ -67,13 +72,46 @@ def graphene_read(cmd, name, t1="0", t2='inf', dt=0):
   return data
 
 ###############################################################
-## load data
+## Load data (with numpy.loadtxt).
+## Suppress warnings on empty data.
+## Problem with variable number of columns.
 def graphene_load(ff, unpack=False, usecols=None):
   with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     data = numpy.loadtxt(ff, comments="#", usecols=usecols, unpack=unpack)
   return data
 
+###############################################################
+## Load data (without numpy.loadtxt)
+## No problems with variable data length
+def graphene_load2(ff, unpack=False, usecols=None):
+  data=[]
+  for x in ff.readlines():
+    line = x.split()
+    if len(line)==0: continue
+    data.append(line)
+
+  mlen=0
+  # calculate max number of columns
+  for x in data:
+    if mlen<len(x): mlen=len(x)
+  if usecols!=None and mlen < max(usecols)+1:
+    mlen = max(usecols)+1
+
+  # pad data to mlen
+  for x in data:
+    if len(x)<mlen: x += float('nan') * (mlen - len(x))
+
+  # convert to numpy
+  data = numpy.array(data, dtype='float')
+
+  # take only needed indices
+  if usecols!=None:
+    data = numpy.take(data, usecols)
+
+  # transpose if needed
+  if usecols: data = numpy.transpose(data)
+  return data
 
 ###############################################################
 ### Do arbitrary graphene command, read output, cache data
@@ -92,7 +130,9 @@ def graphene_cmd(cmd, name, t1="0", t2='inf', dt=0, unpack=False, usecols=None, 
     if fname=="":
       fname = name + "_" + cmd + "_" + t1 + "_" + t2
     fname = cache_dir + "/" + fname
-    if os.path.isfile(fname): return graphene_load(fname, usecols=usecols, unpack=unpack)
+    if os.path.isfile(fname):
+      ff = open(fname)
+      return graphene_load2(ff, usecols=usecols, unpack=unpack)
 
   if cache_dir != "": ff = open(fname, "w+")
   else: ff = tempfile.TemporaryFile(mode="w+")
@@ -101,9 +141,9 @@ def graphene_cmd(cmd, name, t1="0", t2='inf', dt=0, unpack=False, usecols=None, 
   print(data, file=ff)
   ff.seek(0)
 
-  return graphene_load(ff, usecols=usecols, unpack=unpack)
+  return graphene_load2(ff, usecols=usecols, unpack=unpack)
 
-###
+###############################################################
 
 def get_range(name, t1, t2, **kwargs):
   return graphene_cmd('get_range', name, t1=t1, t2=t2, **kwargs)
@@ -120,10 +160,4 @@ def get_next(name, t, **kwargs):
 def get(name, t, **kwargs):
   return graphene_cmd('get', name, t2=t, **kwargs)
 
-###
 
-# Convert time from human-readable to graphene-readable form
-def timeconv(t):
-  if t=="now" or t=="now_s" or t=="inf": return t
-  if re.fullmatch('[0-9\.]+[+-]?', t): return t
-  return subprocess.check_output(['date', '+%s', '-d', t]).decode('utf-8')[0:-1]
