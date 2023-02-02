@@ -110,7 +110,7 @@ def graphene_load2(ff, unpack=False, usecols=None):
     data = numpy.take(data, usecols)
 
   # transpose if needed
-  if usecols: data = numpy.transpose(data)
+  if unpack: data = numpy.transpose(data)
   return data
 
 ###############################################################
