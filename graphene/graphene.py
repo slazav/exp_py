@@ -2,6 +2,7 @@ import subprocess
 import warnings
 import numpy
 import re
+import tempfile
 import os.path
 
 sources = {
@@ -30,28 +31,11 @@ def set_cache(a):
   cache_dir = a
 
 
-### Do arbitrary graphene command
-def graphene_cmd(cmd, name, t1=0, t2='inf', dt=0, unpack=False, usecols=None, fname=""):
-
-  # convert timestammps to strings if needed
-  if type(t1) != str: t1='%f'%(t1)
-  if type(t2) != str: t2='%f'%(t2)
-
-  t1 = timeconv(t1)
-  t2 = timeconv(t2)
-
-  ### do we want to use cache?
-  if cache_dir != "":
-    if not os.path.isdir(cache_dir): os.mkdir(cache_dir)
-    if fname=="":
-      fname = name + "_" + cmd + "_" + t1 + "_" + t2
-    fname = cache_dir + "/" + fname
-    if os.path.isfile(fname):
-      with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        data = numpy.loadtxt(fname, comments="#", usecols=usecols, unpack=unpack)
-      return data
-
+###############################################################
+# Communication with graphene, read-only operations.
+# No caching, no data parsing.
+# t1 and t2 should be strings.
+def graphene_read(cmd, name, t1="0", t2='inf', dt=0):
 
   ### build command: gr_args + <command> + <db name> + <times>
   args = list(gr_args)
@@ -72,23 +56,52 @@ def graphene_cmd(cmd, name, t1=0, t2='inf', dt=0, unpack=False, usecols=None, fn
     if cmd=='get':       args.append(t2)
 
   ### run the command and load values
-  with subprocess.Popen(args,
+  proc = subprocess.Popen(args,
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
-      text=True) as proc:
-    if cache_dir != "":
-      print(proc.stdout.read(), file=open(fname, "w"))
-    else:
-      fname = proc.stdout
-    with warnings.catch_warnings():
-      warnings.simplefilter("ignore")
-      data = numpy.loadtxt(fname, comments="#", usecols=usecols, unpack=unpack)
-    rc = proc.wait()
-    if rc:
-      print('> Graphene error:', proc.stderr.read())
-      exit(1)
+      text=True)
+  data = proc.stdout.read()
+  if proc.wait():
+    print('> Graphene error:', proc.stderr.read())
+    exit(1)
   return data
 
+###############################################################
+## load data
+def graphene_load(ff, unpack=False, usecols=None):
+  with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    data = numpy.loadtxt(ff, comments="#", usecols=usecols, unpack=unpack)
+  return data
+
+
+###############################################################
+### Do arbitrary graphene command, read output, cache data
+def graphene_cmd(cmd, name, t1="0", t2='inf', dt=0, unpack=False, usecols=None, fname=""):
+
+  # convert timestammps to strings if needed
+  if type(t1) != str: t1='%f'%(t1)
+  if type(t2) != str: t2='%f'%(t2)
+
+  t1 = timeconv(t1)
+  t2 = timeconv(t2)
+
+  ### do we want to use cache?
+  if cache_dir != "":
+    if not os.path.isdir(cache_dir): os.mkdir(cache_dir)
+    if fname=="":
+      fname = name + "_" + cmd + "_" + t1 + "_" + t2
+    fname = cache_dir + "/" + fname
+    if os.path.isfile(fname): return graphene_load(fname, usecols=usecols, unpack=unpack)
+
+  if cache_dir != "": ff = open(fname, "w+")
+  else: ff = tempfile.TemporaryFile(mode="w+")
+
+  data = graphene_read(cmd, name, t1, t2, dt)
+  print(data, file=ff)
+  ff.seek(0)
+
+  return graphene_load(ff, usecols=usecols, unpack=unpack)
 
 ###
 

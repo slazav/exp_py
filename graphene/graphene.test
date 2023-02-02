@@ -13,3 +13,7 @@ a = graphene.get_range('w2um', 1652310926, 1652311908, usecols=(0,1))
 print(a)
 
 print (graphene.timeconv("2022-10-01 11:00"))
+
+graphene.set_cache('')
+
+print(graphene.get('w2um', 1652310926.1))
