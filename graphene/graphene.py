@@ -100,7 +100,7 @@ def graphene_load2(ff, unpack=False, usecols=None):
 
   # pad data to mlen
   for x in data:
-    if len(x)<mlen: x += float('nan') * (mlen - len(x))
+    if len(x)<mlen: x += [float('nan')] * (mlen - len(x))
 
   # convert to numpy
   data = numpy.array(data, dtype='float')
