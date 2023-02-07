@@ -63,11 +63,11 @@ def graphene_read(cmd, name, t1="0", t2='inf', dt=0):
   ### run the command and load values
   proc = subprocess.Popen(args,
       stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE,
+      stderr=subprocess.STDOUT,
       text=True)
   data = proc.stdout.read()
   if proc.wait():
-    print('> Graphene error:', proc.stderr.read())
+    print('> Graphene error:', data)
     exit(1)
   return data
 
@@ -84,12 +84,15 @@ def graphene_load(ff, unpack=False, usecols=None):
 ###############################################################
 ## Load data (without numpy.loadtxt)
 ## No problems with variable data length
-def graphene_load2(ff, unpack=False, usecols=None):
+## raw -- return raw string data as python list of lists
+def graphene_load2(ff, unpack=False, usecols=None, raw=False):
   data=[]
   for x in ff.readlines():
     line = x.split()
     if len(line)==0: continue
     data.append(line)
+
+  if raw: return data
 
   mlen=0
   # calculate max number of columns
@@ -117,7 +120,7 @@ def graphene_load2(ff, unpack=False, usecols=None):
 
 ###############################################################
 ### Do arbitrary graphene command, read output, cache data
-def graphene_cmd(cmd, name, t1="0", t2='inf', dt=0, unpack=False, usecols=None, fname=""):
+def graphene_cmd(cmd, name, t1="0", t2='inf', dt=0, unpack=False, usecols=None, raw=False, fname=""):
 
   # convert timestammps to strings if needed
   if type(t1) != str: t1='%f'%(t1)
@@ -134,7 +137,7 @@ def graphene_cmd(cmd, name, t1="0", t2='inf', dt=0, unpack=False, usecols=None, 
     fname = cache_dir + "/" + fname
     if os.path.isfile(fname):
       ff = open(fname)
-      return graphene_load2(ff, usecols=usecols, unpack=unpack)
+      return graphene_load2(ff, usecols=usecols, unpack=unpack, raw=raw)
 
   if cache_dir != "": ff = open(fname, "w+")
   else: ff = tempfile.TemporaryFile(mode="w+")
@@ -143,7 +146,7 @@ def graphene_cmd(cmd, name, t1="0", t2='inf', dt=0, unpack=False, usecols=None, 
   print(data, file=ff)
   ff.seek(0)
 
-  return graphene_load2(ff, usecols=usecols, unpack=unpack)
+  return graphene_load2(ff, usecols=usecols, unpack=unpack, raw=raw)
 
 ###############################################################
 
