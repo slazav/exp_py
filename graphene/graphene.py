@@ -98,8 +98,11 @@ def graphene_load2(ff, unpack=False, usecols=None, raw=False):
   # calculate max number of columns
   for x in data:
     if mlen<len(x): mlen=len(x)
-  if usecols!=None and mlen < max(usecols)+1:
-    mlen = max(usecols)+1
+
+  if usecols!=None:
+    if not isinstance(usecols, list) and\
+       not isinstance(usecols, tuple): usecols=(usecols,)
+    if mlen < max(usecols)+1: mlen = max(usecols)+1
 
   # pad data to mlen
   for x in data:

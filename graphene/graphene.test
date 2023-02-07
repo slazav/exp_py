@@ -12,8 +12,17 @@ print(graphene.get('w2um', 1652310926.1))
 a = graphene.get_range('w2um', 1652310926, 1652311908, usecols=(0,1))
 print(a)
 
+a = graphene.get_range('w2um', 1652310926, 1652311908, usecols=(0))
+print(a)
+
+a = graphene.get_range('w2um', 1652310926, 1652311908, usecols=1)
+print(a)
+
 print (graphene.timeconv("2022-10-01 11:00"))
 
 graphene.set_cache('')
 
 print(graphene.get('w2um', 1652310926.1))
+
+# empty
+print(graphene.get_prev('w2um', 0))
