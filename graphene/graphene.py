@@ -115,7 +115,10 @@ def graphene_load2(ff, unpack=False, usecols=None, raw=False):
 
   # take only needed indices
   if usecols!=None:
-    data = numpy.take(data, usecols)
+    if len(data.shape) == 1:
+      data = data[numpy.r_[usecols]]
+    else:
+      data = data[:,numpy.r_[usecols]]
 
   # transpose if needed
   if unpack: data = numpy.transpose(data)
