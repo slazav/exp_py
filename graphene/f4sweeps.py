@@ -1,4 +1,5 @@
 import numpy
+import math
 import re
 import os
 import graphene
@@ -18,7 +19,9 @@ def get_sweep(name, t1):
   t1 = graphene.timeconv(t1)
   pars = graphene.get_prev(name + '_pars', t1)
   # Note: special timestamps (inf, now, <t>+) will fail here!
-  if pars[0] + pars[1] < float(t1): return (); # too old
+  if pars.size==0: return ()
+  pars=pars[0]
+  if pars.size==0 or pars[0] + pars[1] < float(t1): return (); # too old
   return get_sweeps_(name, pars)
 
 def get_sweep_range(name, t1, t2):
@@ -33,9 +36,20 @@ def get_sweep_list(name, tlist):
     t = graphene.timeconv(t)
     p = graphene.get_prev(name + '_pars', t)
     # Note: special timestamps (inf, now, <t>+) will fail here!
+    if p.size==0: continue
+    p=p[0]
     if p[0] + p[1] < float(t): continue; # too old
     pars = numpy.append(pars, numpy.reshape(p,(1,10)), axis=0)
   return get_sweeps_(name, pars)
+
+# get a single field from sweep list, return numpy array
+def unpack(sweeps, field):
+  ret = numpy.zeros(len(sweeps))
+  for n in range(len(sweeps)): ret[n] = sweeps[n][field]
+  return ret
+
+#def refit(sweep):
+#
 
 
 #######################
@@ -62,7 +76,7 @@ def get_sweeps_(name, pars):
     fspan = abs(f2-f1)
 
     # Get sweep points
-    (ts,fs,xs,ys) = graphene.get_range(name + '_sweeps', t1p, t2p, unpack=1)
+    (ts,fs,xs,ys) = graphene.get_range(name + '_sweeps', t1p, t2p, unpack=1, usecols=(0,1,2,3))
 
     # Get fit
     # (tcnt,dr,Err,A,Ae,B,Be,C,Ce,D,De,f0,f0e,df,dfe,[E,Ee,F,Fe])
@@ -71,8 +85,10 @@ def get_sweeps_(name, pars):
 
     if all(fit[[11,13]] != 0):
       amp = numpy.hypot(fit[7],fit[9])/fit[11]/fit[13]
+      ph  = numpy.arctan2(fit[9],fit[7]) * 180/math.pi
     else:
       amp = float("nan")
+      ph  = float("nan")
 
     # get demag field
     Bdemag = graphene.get_prev('demag_pc:f2', tcent, usecols=1)
@@ -94,7 +110,7 @@ def get_sweeps_(name, pars):
       'fit_df': fit[13], 'fit_df_err': fit[14],
       'fit_E': fit[15],  'fit_E_err': fit[16],
       'fit_F': fit[17],  'fit_F_err': fit[18],
-      'fit_amp': amp,
+      'fit_amp': amp, 'fit_ph': ph,
       'demag': Bdemag,
     }
     sweeps.append(sweep)
@@ -124,9 +140,10 @@ def plot_sweeps(sweeps, png_dir):
     info1 += "drive: %.3f V\n"%(s['drive'])
     info1 += "demag: %.3f T\n"%(s['demag'])
 
-    info2 = "fit_f0:  %.4f Hz\n"%(f0)
+    info2 =  "fit_f0:  %.4f Hz\n"%(f0)
     info2 += "fit_df:  %.4f Hz\n"%(df)
     info2 += "fit_amp: %.4f uV\n"%(s['fit_amp']*1e6)
+    info2 += "fit_ph:  %.4f deg\n"%(s['fit_ph'])
 
     plt.clf()
     plt.plot(f, x*1e6, 'r.-', label="X", linewidth=0.5)
