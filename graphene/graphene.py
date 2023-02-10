@@ -4,6 +4,7 @@ import numpy
 import re
 import tempfile
 import os.path
+import time
 
 sources = {
   "local":   ('device_c', 'ask', 'db'),
@@ -30,11 +31,32 @@ def set_cache(a):
   global cache_dir
   cache_dir = a
 
+###############################################################
 ### Convert time from human-readable to graphene-readable form
-def timeconv(t):
+#def timeconv(t):
+#  if t=="now" or t=="now_s" or t=="inf": return t
+#  if re.fullmatch('[0-9\.]+[+-]?', t): return t
+#  return subprocess.check_output(['date', '+%s', '-d', t]).decode('utf-8')[0:-1]
+
+def timeconv(t, fmt=""):
   if t=="now" or t=="now_s" or t=="inf": return t
   if re.fullmatch('[0-9\.]+[+-]?', t): return t
-  return subprocess.check_output(['date', '+%s', '-d', t]).decode('utf-8')[0:-1]
+
+  if fmt!="": return time.mktime(time.strptime(t, fmt))
+
+  for fmt in ('%Y-%m-%d %H:%M:%S',
+              '%Y-%m-%dT%H:%M:%S',
+              '%Y-%m-%d %H:%M',
+              '%Y-%m-%dT%H:%M',
+              '%Y-%m-%d %H',
+              '%Y-%m-%dT%H',
+              '%Y-%m-%d'):
+    try:
+      return time.mktime(time.strptime(t, fmt))
+    except ValueError:
+      pass
+  raise ValueError('no valid date format found for ', t)
+
 
 ###############################################################
 # Communication with graphene, read-only operations.
