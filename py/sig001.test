@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import matplotlib.pyplot as plt
-import sig
+import sig001 as sig
 
 (data, info) = sig.read("sig.test.dat")
 time = sig.make_tgrid(info)

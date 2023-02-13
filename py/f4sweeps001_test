@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import f4sweeps
+import f4sweeps001 as f4sweeps
 
 print("get_sweep: ")
 data = f4sweeps.get_sweep('w1bh', '2023-01-08 00:00')
