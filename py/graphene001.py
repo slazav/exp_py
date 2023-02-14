@@ -42,7 +42,9 @@ def timeconv(t, fmt=""):
   if t=="now" or t=="now_s" or t=="inf": return t
   if re.fullmatch('[0-9\.]+[+-]?', t): return t
 
-  if fmt!="": return time.mktime(time.strptime(t, fmt))
+  if fmt!="":
+    d = time.mktime(time.strptime(t, fmt))
+    return "%f"%(d)
 
   for fmt in ('%Y-%m-%d %H:%M:%S',
               '%Y-%m-%dT%H:%M:%S',
@@ -52,7 +54,8 @@ def timeconv(t, fmt=""):
               '%Y-%m-%dT%H',
               '%Y-%m-%d'):
     try:
-      return time.mktime(time.strptime(t, fmt))
+      d = time.mktime(time.strptime(t, fmt))
+      return "%f"%(d)
     except ValueError:
       pass
   raise ValueError('no valid date format found for ', t)
