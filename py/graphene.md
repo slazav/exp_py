@@ -1,9 +1,12 @@
 ## Python library for getting data from graphene database
 
+Usage: `import graphene002 as graphene`
+
 ### Changelog
 
-001 - first version, until 13.02.2023, V.Z.
-002 - 13.02.2003 - ...
+* 001 - first version, until 13.02.2023, V.Z.
+* 002 - 13.02.2003 - ...
+        more strict cache files (name should be specified)
 
 ### Functions (v002)
 

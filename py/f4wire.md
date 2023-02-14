@@ -1,5 +1,7 @@
 ## Python library for getting vibrating wire data from graphene database
 
+Usage: `import f4wire001 as f4wire`
+
 ### Changelog
 
 * v001 -- 2023.02.14, V.Z
@@ -32,5 +34,11 @@ Return value: empty or 2D numpy array (Nx5). Columns: time, frequency(Hz), X(Vrm
 * `get_sweep_list(name, tlist, sweep_dir=None, ...)` -- similar to `get_sweep()` but use list of timestamps to get list of sweeps
 
 Arguments:
+
 * `sweep_dir` -- is -1 or 1, then select only one sweep direction.
 * other arguments are same as in `get_data()` function
+* if `cache` parameter is not empty then all sweeps are saved in a single file
+
+Return value:
+
+Python list of sweeps - numpy arrays from get_data() function
