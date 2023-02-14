@@ -1,0 +1,32 @@
+#!/usr/bin/python3
+
+import graphene002 as graphene
+
+#graphene.set_args(('device_c', 'ask', 'db'))
+graphene.set_source('xyz_f4')
+
+print(graphene.get_prev('w2um', 1652310926.1))
+print(graphene.get('w2um', 1652310926.1))
+
+
+a = graphene.get_range('w2um', 1652310926, 1652311908, cache="tmp1")
+print("usecols=None: ", a)
+
+a = graphene.get_range('w2um', 1652310926, 1652311908, usecols=(0,1), cache="tmp2")
+print("usecols=(0,1): ", a)
+
+a = graphene.get_range('w2um', 1652310926, 1652311908, usecols=(0))
+print("usecols=(0): ", a)
+
+a = graphene.get_range('w2um', 1652310926, 1652311908, usecols=1)
+print("usecols=1: ", a)
+
+a = graphene.get_range('w2um', 1652310926, 1652311908, usecols=100)
+print("usecols=100: ", a)
+
+print (graphene.timeconv("2022-10-01 11:00"))
+
+print(graphene.get('w2um', 1652310926.1))
+
+# empty
+print(graphene.get_prev('w2um', 0))
