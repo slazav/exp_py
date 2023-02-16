@@ -22,7 +22,7 @@ def minfunc(par, coord,F,X,Y):
 ###############################################################
 class fit_res_t:
   par=[] # 8-values: A,B,C,D,f0,df,E,F
-  err=[] # perameter uncertainties
+  err=[] # parameter uncertainties
   time=0  # Mean time
   drive=0 # Mean drive
   e=0     # RMS difference between data and model
