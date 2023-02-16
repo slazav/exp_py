@@ -39,6 +39,8 @@ Arguments:
 * other arguments are same as in `get_data()` function
 * if `cache` parameter is not empty then all sweeps are saved in a single file
 
-Return value:
+Return value: Python list of sweeps - numpy arrays from get_data() function
 
-Python list of sweeps - numpy arrays from get_data() function
+#### `merge_sweeps` -- merge sweeps with same drive
+
+Usage: `sweeps = merge_sweeps(sweeps)`
