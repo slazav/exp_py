@@ -44,3 +44,28 @@ Return value: Python list of sweeps - numpy arrays from get_data() function
 #### `merge_sweeps` -- merge sweeps with same drive
 
 Usage: `sweeps = merge_sweeps(sweeps)`
+
+#### `track_res_lin` -- Process tracking mode data, linear resonance
+
+Usage: `(f0, df) = track_res_lin(data, fit)`
+
+Process tracking mode data. Assuming that resonance is linear, and
+A,B,C,D,E,F parameters are proportional to drive find f0 and df
+parameters.
+
+Arguments:
+* `data` -- data from `<name>_sweep` database (output of `f4wire.get_data()`)
+* `fit`  -- output of `fit_res`, fit of a frequency sweep which is used for processing
+
+Return values: resonance frequency and width, `f0` and `df`, numpy arrays, same length as `data[:,0]`
+
+#### `track_heat` -- Process tracking mode data, heating
+
+Usage: `pwr = track_heat(data, fit)`
+
+Process tracking mode data. Calculate power dissipated by wire. Power in Watts if
+input voltage in Volts(rms) and drive is Amps(rms)
+
+Arguments: same as for `track_res_lin()`
+
+Return value: dissipated power `pwr` -- numpy array, same length as `data[:,0]`

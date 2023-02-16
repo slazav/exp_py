@@ -141,3 +141,56 @@ def get_sweep_list(name, tlist, **kwargs):
     if p[0] + p[1] < float(t): continue; # too old
     pars = numpy.append(pars, numpy.reshape(p,(1,10)), axis=0)
   return get_sweeps_(name, pars, **kwargs)
+
+###########################################################
+# merge sweeps with same drive
+def merge_sweeps(sweeps):
+  ret = []
+  for s in sweeps:
+    if len(ret)>0 and ret[-1][0,4] == s[0,4]:
+      ret[-1] = numpy.row_stack((ret[-1], s))
+    else:
+      ret.append(s)
+  return ret
+
+###########################################################
+# Process tracking mode data. Assuming that resonance is linear,
+# and A,B,C,D,E,F parameters are not changing (or scaled with drive)
+# find f0 and df parameters.
+def track_res_lin(data, fit):
+  # scale to original drive, subtract offset
+  FF = data[:,1]
+  XX = data[:,2]*fit.drive/data[:,4] - fit.A - fit.E*(FF-fit.f0)
+  YY = data[:,3]*fit.drive/data[:,4] - fit.B - fit.F*(FF-fit.f0)
+
+  # coord:     X + i*Y = (C + i*D) / (f0^2-f^2 + i*f*df)
+  # velocity:  X + i*Y = 1j*F*(C + i*D) / (f0^2-f^2 + i*f*df)
+  # find V = f0^2-f^2 + i*f*df:
+  VV = (fit.C + 1j*fit.D)/(XX + 1j*YY)
+  if not fit.coord: VV *= 1j*FF
+
+  F0 = numpy.sqrt(numpy.real(VV) + FF**2)
+  dF = numpy.imag(VV)/FF
+  return (F0, dF)
+
+###########################################################
+# Process tracking mode data.
+# Calculate dissipated power: drive current multiplied by in-phase voltage.
+def track_heat(data, fit):
+
+  # subtract offset scaled to new drive
+  FF = data[:,1]
+  XX = data[:,2] - (fit.A + fit.E*(FF-fit.f0))*data[:,4]/fit.drive
+  YY = data[:,3] - (fit.B + fit.F*(FF-fit.f0))*data[:,4]/fit.drive
+
+  # Project (X,Y) to (C,D) in coord mode, (-D,C) in velocity mode.
+  # C and D are not scaled to drive, but absolute value is not important.
+  # We use drive for that
+  if fit.coord:
+#    Vpar = (fit.C*XX + fit.D*YY)/numpy.hypot(fit.C,fit.D)
+    Vperp = (-fit.C*YY + fit.D*XX)/numpy.hypot(fit.C,fit.D)
+  else:
+#    Vpar = (fit.C*YY - fit.D*XX)/numpy.hypot(fit.C,fit.D)
+    Vperp = (fit.C*XX - fit.D*YY)/numpy.hypot(fit.C,fit.D)
+
+  return data[:,4]*Vperp
