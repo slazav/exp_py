@@ -18,7 +18,7 @@ sweeps = f4wire.merge_sweeps(sweeps)
 # fit data
 coord=1 # coordinate/velocity fit
 s = sweeps[0]
-(time, drive, e, par, err) = fit_res.fit(s, coord=coord, npars=6, do_fit=1)
+res = fit_res.fit(s, coord=coord, npars=6, do_fit=1)
 
 # plot data
 plt.plot(s[:,1], s[:,2], 'r.', label="X")
@@ -26,7 +26,9 @@ plt.plot(s[:,1], s[:,3], 'b.', label="Y")
 
 # make and plot model function
 ff=numpy.linspace(min(s[:,1]), max(s[:,1]), 100)
-vv=fit_res.fitfunc(par, coord, ff)
+vv=res.func(ff)
+
+print(res.f0, res.df)
 
 plt.plot(ff, numpy.real(vv), 'k-', linewidth=1)
 plt.plot(ff, numpy.imag(vv), 'k-', linewidth=1)

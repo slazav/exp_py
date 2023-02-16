@@ -2,6 +2,7 @@ import numpy
 import math
 import scipy.optimize
 
+###############################################################
 # complex function used for fitting
 def fitfunc(par,coord,F):
 
@@ -18,7 +19,51 @@ def minfunc(par, coord,F,X,Y):
   V = fitfunc(par, coord,F)
   return numpy.linalg.norm(X + 1j*Y - V)
 
+###############################################################
+class fit_res_t:
+  par=[] # 8-values: A,B,C,D,f0,df,E,F
+  err=[] # perameter uncertainties
+  time=0  # Mean time
+  drive=0 # Mean drive
+  e=0     # RMS difference between data and model
+  coord=0 # coord/velocity fit
+  npars=6 # 6/8 pars
+  (A,B,C,D,f0,df,E,F) = [0]*8 # fit parameters
 
+  def __init__(self, time,drive,e,par,err, npars, coord):
+    if len(par)!=8 or len(err)!=8:
+      print("ERROR: fit_res_t: list of size 8 expected")
+      exit(1)
+    self.time=time
+    self.drive=drive
+    self.e=e
+    self.par=par
+    self.err=err
+    self.coord=coord
+    self.npars=npars
+    self.A=par[0]
+    self.B=par[1]
+    self.C=par[2]
+    self.D=par[3]
+    self.f0=par[4]
+    self.df=par[5]
+    self.E=par[6]
+    self.F=par[7]
+
+  # function
+  def func(self, f):
+    return fitfunc(self.par, self.coord, f)
+
+  # Data array as in the database format (19 columns)
+  # time, drive, e, A, Ae, B, Be, ...
+  def dbfmt(self):
+    return [self.time, self.drive, self.e,
+      self.par[0], self.err[0], self.par[1], self.err[1],
+      self.par[2], self.err[2], self.par[3], self.err[3],
+      self.par[4], self.err[4], self.par[5], self.err[5],
+      self.par[6], self.err[6], self.par[7], self.err[7]]
+
+###############################################################
 # Fit frequency sweep.
 # Similar to fit_res program (https://github.com/slazav/fit_res)
 # data is Nx5 numpy array with usual columns:
@@ -97,7 +142,10 @@ def fit(data, coord=0, npars=6, do_fit=1):
     par[i]*=k
     err[i]*=k
 
-  return (time, drive, e, par, err)
+  ret = fit_res_t(time, drive, e, par, err, npars, coord)
+
+  return ret
+#  return (time, drive, e, par, err)
 #  return [time, drive, e,
 #    par[0], err[0], par[1], err[1],
 #    par[2], err[2], par[3], err[3],
