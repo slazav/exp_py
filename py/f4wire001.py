@@ -78,7 +78,7 @@ def get_sweeps_(name, pars, sweep_dir=None, cache="", **kwargs):
       else:
         print("ERROR: wrong data in cache file: ", cache, l)
     if len(s)>0:
-      sweeps.append(numpy.array(s))
+      sweeps.append(numpy.array(s, dtype=float))
       s=[]
     return sweeps
 
