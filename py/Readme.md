@@ -5,5 +5,7 @@ implemented as new version "<name><version>"
 
 * sig -- reading SIG files recorded with pico_osc program (https://github.com/slazav/pico_osc)
 
-* f4sweeps -- get frequency sweeps from Fridge4 vibrating wire databases
+* f4wires -- get vibrating wire data
+
+* f4sweeps -- get frequency sweeps from Fridge4 vibrating wire databases -- old
 
