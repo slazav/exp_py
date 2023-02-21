@@ -48,7 +48,8 @@ def get_data(name, t1, t2, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
   if cnv_volt:
     v2v = graphene.get_prev(name + "_meas:f1", t1, usecols=1)
     if v2v.size>0:
-      data[:,4] /= v2v[0]
+      data[:,2] /= v2v[0]
+      data[:,3] /= v2v[0]
       #print("v2v: ", v2v[0])
 
   if cache != "": numpy.savetxt(cache, data)
