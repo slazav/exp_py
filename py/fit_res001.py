@@ -99,7 +99,6 @@ def fit(data, coord=0, npars=6, do_fit=1):
   # it should be near resonance:
   ires = numpy.argmax(numpy.hypot(XX-A, YY-B))
   F0 = FF[ires]
-  print(F0)
 
   # min/max freq where distance > dmax/sqrt(2),
   # this is resonance width:
