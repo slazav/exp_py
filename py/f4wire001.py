@@ -226,6 +226,6 @@ def track_heat(data, fit):
     Vperp = (-fit.C*YY + fit.D*XX)/numpy.hypot(fit.C,fit.D)
   else:
 #    Vpar = (fit.C*YY - fit.D*XX)/numpy.hypot(fit.C,fit.D)
-    Vperp = (fit.C*XX - fit.D*YY)/numpy.hypot(fit.C,fit.D)
+    Vperp = (fit.C*XX + fit.D*YY)/numpy.hypot(fit.C,fit.D)
 
   return data[:,4]*Vperp
