@@ -6,6 +6,40 @@ import os
 import graphene002 as graphene
 
 ###########################################################
+# Wire thickness and length (projection to plane perpendicular to B), mm
+def wire_dim(name):
+  # Cell 2022
+  if (name == 'w1ta2'): return (0.127, 3.61)  # measured on photo
+  if (name == 'w1ta2'): return (0.127, 5.16)  # measured on photo
+  if (name == 'w1bh'): return (13.5e-3, 2.74) # measured on photo
+  if (name == 'w2bh'): return (13.5e-3, 2.58) # measured on photo
+  if (name == 'w1bt'): return (4.5e-3, 1.49)  # measured on photo
+  if (name == 'w1bt'): return (4.5e-3, 1.43) # measured on photo
+  # thin wires of classical design
+  if (name == 'w1a'): return (4.5e-3, 1.4) # unknown length
+  if (name == 'w2a'): return (4.5e-3, 1.4) # unknown length
+  if (name == 'w1b'): return (0.315e-3, 1) # unknown length
+  if (name == 'w2b'): return (0.180e-3, 1) # unknown length
+  # wires on PCB
+  if (name == 'w1c'): return (0.390e-3, 1) # unknown length
+  if (name == 'w2c'): return (0.315e-3, 1) # unknown length
+  if (name == 'w1d'): return (0.180e-3, 1) # unknown length
+  if (name == 'w2d'): return (0.180e-3, 1) # unknown length
+  # Cell 2020
+  if (name == 'w0ta'): return (0.127, 5.0)  # unknown length
+  if (name == 'w1ta'): return (0.127, 4.87)  # measured on photo
+  if (name == 'w2ta'): return (0.127, 5.13)  # measured on photo
+  if (name == 'w0um'): return (4.5e-3, 1.4) # unknown length
+  if (name == 'w1um'): return (4.5e-3, 1.4) # unknown length
+  if (name == 'w2um'): return (4.5e-3, 1.4) # unknown length
+  if (name == 'w1nm'): return (0.45e-3, 1) # unknown length
+  if (name == 'w2nm'): return (0.45e-3, 1) # unknown length
+  #
+  if (name == 'mcta'): return (0.127, 5.0)  # unknown length
+  print('ERROR: f4wire.wire_len: unknown name: ', name, file=sys.stderr)
+  exit(1)
+
+###########################################################
 # Calculate background using standard 12-parameter model.
 #
 def calc_bg(bg, x, im=0):
