@@ -147,7 +147,7 @@ def get_sweep_prev(name, t1, **kwargs):
   return get_sweeps_(name, pars, **kwargs)
 
 def get_sweep_next(name, t1, **kwargs):
-  pars = graphene.get_prev(name + '_pars', t1)
+  pars = graphene.get_next(name + '_pars', t1)
   return get_sweeps_(name, pars, **kwargs)
 
 def get_sweep_range(name, t1, t2, **kwargs):
