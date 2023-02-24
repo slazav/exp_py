@@ -49,7 +49,6 @@ a.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
 a.set_xlabel("freq, Hz")
 a.set_ylabel("volt, Vrms")
 a.set_title("heater frequency sweep")
-
 # thermometer sweep
 a=ax[1,0]
 a.plot(sweep_t[:,1], sweep_t[:,2], 'r.', label="X")
@@ -80,7 +79,7 @@ a2=ax[1,1].twinx()
 a2.plot(data_t[:,0]-t0, f0t, 'b.-', label="f0_track")
 a2.plot(data_t[:,0]-t0, data_t[:,1], 'g.-', label="f_meas")
 a1.plot(data_t[:,0]-t0, dft, 'r.-', label="df_track")
-xx=[0, data_t[-1:,0]-t0]
+xx=[0, data_t[-1,0]-t0]
 a1.plot(xx, [fit_t.df]*2, 'm-', label='df_fit')
 a2.plot(xx, [fit_t.f0]*2, 'c-', label='f0_fit')
 a1.set_xlabel("time, s")
