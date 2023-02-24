@@ -1,6 +1,7 @@
 # processing vibrating wire data
 
 import numpy
+import scipy.optimize
 import sys
 import os
 import graphene002 as graphene
@@ -371,3 +372,54 @@ def get_track(name, t1, t2,
 
   if cache != "": numpy.savez(cache, TT, F0, dF, Vpar, Vperp, vel, PWR)
   return (TT, F0, dF, Vpar, Vperp, vel, PWR)
+
+###########################################################
+# Process background sweep.
+def get_bg(nn, t1, fmin=0, fmax=1e6, fminres=0, fmaxres=0, cache="", plot=""):
+
+  # get data for sweep, no conversions!
+  sweeps = get_sweep(nn, t1, cache=cache, use_bg=0, cnv_volt=0, cnv_drive=0)
+
+  if len(sweeps) < 1: return
+  s = sweeps[0]
+  print("\n", nn)
+
+  F = s[:,1] *1e-3; # kHz
+  X = s[:,2]/s[:,4] * 1e6; # uV/V drive
+  Y = s[:,3]/s[:,4] * 1e6; # uV/V drive
+
+  ii=numpy.logical_and(F>=fmin/1000, F<=fmax/1000)
+  if fminres!=0 and fmaxres!=0:
+    jj=numpy.logical_or(F<fminres/1000, F>fmaxres/1000)
+    ii=logical_and(ii,jj)
+
+  # 6-prameter function compatible with background setting in
+  # forc_cw interface
+  px=(1000,1000,1,1,5,5)
+  py=(1000,1000,1,1,5,5)
+  def fitfunc(x, a,b,c,d, f,g):
+    return (a+b*x+c*x**2+d*x**3)/((x**2-f**2)**2 + (g*x)**2)
+
+  px = scipy.optimize.curve_fit(fitfunc, F[ii], X[ii], px, maxfev=200000)[0]
+  py = scipy.optimize.curve_fit(fitfunc, F[ii], Y[ii], py, maxfev=200000)[0]
+
+  print("%f %f %f %f %f %f"%(*px,))
+  print("%f %f %f %f %f %f"%(*py,))
+
+  if plot!="":
+    import matplotlib.pyplot as plt
+    xx=numpy.linspace(0.5,10, 200)
+    plt.clf()
+    plt.plot(F,X, 'r.')
+    plt.plot(F,Y, 'b.')
+    plt.plot(xx, fitfunc(xx, *px), 'k-')
+    plt.plot(xx, fitfunc(xx, *py), 'k-')
+
+    plt.xlabel('freq, kHz')
+    plt.ylabel('X/D, Y/D [uV/V]')
+
+    fig = plt.gcf()
+    fig.set_size_inches(8, 6)
+    plt.savefig(plot + ".png", dpi=100)
+    plt.close()
+  return (*px, *py)
