@@ -123,8 +123,8 @@ def fit(data, coord=0, npars=6, do_fit=1):
   err = [0,0,0,0,0,0]
   e   = 0
   if npars==8:
-    par.append(E,F)
-    err.append(0,0)
+    par.extend((E,F))
+    err.extend((0,0))
 
   if do_fit:
     res = scipy.optimize.minimize(minfunc, par, (coord, FF,XX,YY),
