@@ -73,3 +73,28 @@ input voltage in Volts(rms) and drive is Amps(rms)
 Arguments: same as for `track_res_lin()`
 
 Return value: dissipated power `pwr` -- numpy array, same length as `data[:,0]`
+
+#### `get_track` -- high-level function for processing tracking mode data.
+
+Usage: `(time, f0, df, Vpar, Vperp, vel, PWR) =
+ get_track(name, t1, t2, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1, fit_coord=0, fit_npars=6)`
+
+Arguments:
+* `name` -- wire name
+* `t1`, `t2` -- timestamps
+* `cache` -- prefix for cache file (will be saved in .npz format)
+* `plot`  -- prefix for plot (.png)
+* `nsweeps`, `nskip`, `prev_sweeps` -- Use sweeps before (`prev_sweeps=1`) or after the data range.
+   skip `nskip` sweeps and merge next `nsweeps` (with amplitude rescaled to drive).
+* `fit_coord` -- use coordinate fit instead of velocity fit
+* `fit_npars` -- number of parameters for Lorenzian fit
+
+Return values:
+* `time`
+* `f0`, `df` -- Resonance frequency and width.
+* `vpar`, `vperp` -- Components of voltage projected to direction of driving force.
+* `vel` -- Velocity amplitude (m/s). Field from `demag_pc:f2` database is used.
+* `pwd` -- Dissipated power (drive * vpar).
+
+def get_track(name, t1, t2,
+     cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1, fit_coord=0, fit_npars=6):

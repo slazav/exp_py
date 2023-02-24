@@ -250,3 +250,124 @@ def track_heat(data, fit):
     Vperp = (fit.C*XX + fit.D*YY)/numpy.hypot(fit.C,fit.D)
 
   return data[:,4]*Vperp
+
+###########################################################
+# Process tracking mode data.
+def get_track(name, t1, t2,
+     cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1, fit_coord=0, fit_npars=6):
+  import fit_res001 as fit_res
+
+  if cache != "" and os.path.isfile(cache+".npz"):
+    data = numpy.load(cache+".npz")
+    return (data["arr_0"], data["arr_1"], data["arr_2"],
+            data["arr_3"], data["arr_4"], data["arr_5"], data["arr_6"])
+
+  # Get data with correct current and voltage
+  data = get_data(name, t1, t2)
+
+  # Get previous frequency sweep for thermometer and heater:
+  if prev_sweeps:
+    sweep = get_sweep_prev(name, t1, nsweeps=nsweeps, nskip=nskip)
+    sweep = merge_sweeps(sweep, same_drive=0)[0]
+  else:
+    sweep = get_sweep_next(name, t2, nsweeps=nsweeps, nskip=nskip)
+    sweep = merge_sweeps(sweep, same_drive=0)[0]
+
+  # Fit the sweep
+  fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars)
+
+  # Scale offset and amplitude to new drive
+  TT = data[:,0]
+  FF = data[:,1]
+  DD = data[:,4]
+  C = fit.C * DD/fit.drive
+  D = fit.D * DD/fit.drive
+  XX = data[:,2] - (fit.A + fit.E*(FF-fit.f0))*DD/fit.drive
+  YY = data[:,3] - (fit.B + fit.F*(FF-fit.f0))*DD/fit.drive
+
+  # Resonance frequency and width:
+  # coord:     X + i*Y = (C + i*D) / (f0^2-f^2 + i*f*df)
+  # velocity:  X + i*Y = 1j*F*(C + i*D) / (f0^2-f^2 + i*f*df)
+  # find V = f0^2-f^2 + i*f*df:
+  VV = (C + 1j*D)/(XX + 1j*YY)
+  if not fit.coord: VV *= 1j*FF
+  F0 = numpy.sqrt(numpy.real(VV) + FF**2)
+  dF = numpy.imag(VV)/FF
+
+  # Project (X,Y) to (C,D) in coord mode, (-D,C) in velocity mode.
+  if fit.coord:
+    Vpar = (C*XX + D*YY)/numpy.hypot(C,D)
+    Vperp = (-C*YY + D*XX)/numpy.hypot(C,D)
+  else:
+    Vpar = (C*YY - D*XX)/numpy.hypot(C,D)
+    Vperp = (C*XX + D*YY)/numpy.hypot(C,D)
+
+  # Power
+  PWR = DD*Vperp
+
+  # Get field
+  field = graphene.get_prev("demag_pc:f2", t1, usecols=1)[0][0]
+
+  # Wire dimensions, mm (projection to plane perpendicular to B)
+  (wd, wl) = wire_dim(name)
+
+  # Velocity
+  vel=numpy.hypot(Vpar, Vperp)/field/(wl*1e-3)
+
+  # do plot if needed
+  if plot!="":
+    import matplotlib.pyplot as plt
+    (fig, ax) = plt.subplots(2,2)
+
+    # sweep
+    a=ax[0,0]
+    a.plot(sweep[:,1], sweep[:,2], 'r.', label="X")
+    a.plot(sweep[:,1], sweep[:,3], 'b.', label="Y")
+    ff=numpy.linspace(min(sweep[:,1]), max(sweep[:,1]), 100)
+    vv=fit.func(ff)
+    a.plot(ff, numpy.real(vv), 'k-', linewidth=1)
+    a.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
+    a.set_xlabel("freq, Hz")
+    a.set_ylabel("volt, Vrms")
+    a.set_title("frequency sweep")
+
+    t0 = TT[0]
+    # width and frequency in tracking mode
+    a1=ax[0,1]
+    a2=a1.twinx()
+    a2.plot(TT-t0, F0, 'b.-', label="f0rack")
+    a2.plot(TT-t0, FF, 'g.-', label="f_meas")
+    a1.plot(TT-t0, dF, 'r.-', label="dfrack")
+    xx=[0, TT[-1]-t0]
+    a1.plot(xx, [fit.df]*2, 'm-', label='df_fit')
+    a2.plot(xx, [fit.f0]*2, 'c-', label='f0_fit')
+    a1.set_xlabel("time, s")
+    a1.set_ylabel("df, Hz")
+    a2.set_ylabel("f0, Hz")
+    a1.legend()
+    a2.legend()
+    a1.set_title("freq, width")
+
+    # voltage components
+    a=ax[1,0]
+    a.plot(TT-t0, Vpar,  'r.-', label="Vpar")
+    a.plot(TT-t0, Vperp, 'b.-', label="Vperp")
+    a.set_xlabel("time, s")
+    a.set_ylabel("Voltage")
+    a.legend()
+    a.set_title("X,Y")
+
+    # power
+    a=ax[1,1]
+    a.semilogy(TT-t0, PWR,  'r.-')
+    a.set_xlabel("time, s")
+    a.set_ylabel("Power, W")
+    a.set_title("power")
+
+    # save plot
+    plt.gcf().set_size_inches(12, 12)
+    plt.savefig(plot, dpi=100)
+    plt.close()
+
+  if cache != "": numpy.savez(cache, TT, F0, dF, Vpar, Vperp, vel, PWR)
+  return (TT, F0, dF, Vpar, Vperp, vel, PWR)
