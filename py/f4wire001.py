@@ -14,7 +14,7 @@ def wire_dim(name):
   if (name == 'w1bh'): return (13.5e-3, 2.74) # measured on photo
   if (name == 'w2bh'): return (13.5e-3, 2.58) # measured on photo
   if (name == 'w1bt'): return (4.5e-3, 1.49)  # measured on photo
-  if (name == 'w1bt'): return (4.5e-3, 1.43) # measured on photo
+  if (name == 'w2bt'): return (4.5e-3, 1.43) # measured on photo
   # thin wires of classical design
   if (name == 'w1a'): return (4.5e-3, 1.4) # unknown length
   if (name == 'w2a'): return (4.5e-3, 1.4) # unknown length
