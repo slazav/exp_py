@@ -27,8 +27,8 @@ Return value: empty or 2D numpy array (Nx5). Columns: time, frequency(Hz), X(Vrm
 
 #### `get_sweep_*` -- get list of frequency sweeps
 
-* `get_sweep_prev(name, t1, sweep_dir=None, ...)` -- get sweep starting before t1
-* `get_sweep_next(name, t1, sweep_dir=None, ...)` -- get sweep starting after t1
+* `get_sweep_prev(name, t1, sweep_dir=None, nskip=0, nsweeps=1, ...)` -- get sweep starting before t1
+* `get_sweep_next(name, t1, sweep_dir=None, nskip=0, nsweeps=1, ...)` -- get sweep starting after t1
 * `get_sweep_range(name, t1, t2, sweep_dir=None, ...)` -- get all sweeps starting between t1 and t2
 * `get_sweep(name, t1, sweep_dir=None, ...)` -- get sweep starting before t1 and ending after t1
 * `get_sweep_list(name, tlist, sweep_dir=None, ...)` -- similar to `get_sweep()` but use list of timestamps to get list of sweeps
@@ -36,6 +36,8 @@ Return value: empty or 2D numpy array (Nx5). Columns: time, frequency(Hz), X(Vrm
 Arguments:
 
 * `sweep_dir` -- is -1 or 1, then select only one sweep direction.
+* `nskip`    -- number of sweeps to skip in get_sweep_prev/get_sweep_next.
+* `nsweeps`  -- number of sweeps to get in get_sweep_prev/get_sweep_next.
 * other arguments are same as in `get_data()` function
 * if `cache` parameter is not empty then all sweeps are saved in a single file
 
