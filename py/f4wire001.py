@@ -192,8 +192,15 @@ def get_sweep_list(name, tlist, **kwargs):
   return get_sweeps_(name, pars, **kwargs)
 
 ###########################################################
-# merge sweeps with same drive
-def merge_sweeps(sweeps):
+# merge sweeps (only merge same drive or merge all with amplitude rescaling)
+def merge_sweeps(sweeps, same_drive=1):
+
+  if same_drive==0:
+    ret = numpy.row_stack(sweeps)
+    ret[:,2] *= ret[0,4] / ret[:,4]
+    ret[:,3] *= ret[0,4] / ret[:,4]
+    return [ret,]
+
   ret = []
   for s in sweeps:
     if len(ret)>0 and ret[-1][0,4] == s[0,4]:

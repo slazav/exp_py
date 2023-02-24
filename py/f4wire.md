@@ -43,9 +43,11 @@ Arguments:
 
 Return value: Python list of sweeps - numpy arrays from get_data() function
 
-#### `merge_sweeps` -- merge sweeps with same drive
+#### `merge_sweeps` -- merge sweeps
 
-Usage: `sweeps = merge_sweeps(sweeps)`
+Only merge sweeps with same drive (same_drive=1) or merge all sweeps with amplitude restcaling.
+
+Usage: `sweeps = merge_sweeps(sweeps, same_drive=1)`
 
 #### `track_res_lin` -- Process tracking mode data, linear resonance
 
