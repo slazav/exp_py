@@ -142,16 +142,22 @@ def get_sweeps_(name, pars, sweep_dir=None, cache="", **kwargs):
 ###########################################################
 # Get sweeps
 
-def get_sweep_prev(name, t1, nsweeps=1, **kwargs):
+def get_sweep_prev(name, t1, nsweeps=1, nskip=0, **kwargs):
   sweeps = []
+  for i in range(nskip):
+    pars = graphene.get_prev(name + '_pars', t1)
+    t1 = pars[0][0]-1e-6
   for i in range(nsweeps):
     pars = graphene.get_prev(name + '_pars', t1)
     sweeps.append(get_sweeps_(name, pars, **kwargs)[0])
     t1 = pars[0][0]-1e-6
   return sweeps
 
-def get_sweep_next(name, t1, nsweeps=1, **kwargs):
+def get_sweep_next(name, t1, nsweeps=1, nskip=0, **kwargs):
   sweeps = []
+  for i in range(nskip):
+    pars = graphene.get_next(name + '_pars', t1)
+    t1 = pars[0][0]-1e-6
   for i in range(nsweeps):
     pars = graphene.get_next(name + '_pars', t1)
     sweeps.append(get_sweeps_(name, pars, **kwargs)[0])
