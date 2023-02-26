@@ -255,10 +255,11 @@ def track_heat(data, fit):
 ###########################################################
 # Process tracking mode data.
 def get_track(name, t1, t2,
-     cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1, fit_coord=0, fit_npars=6):
+     get=0, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1,
+     fit_coord=0, fit_npars=6):
   import fit_res001 as fit_res
 
-  if cache != "" and os.path.isfile(cache+".npz"):
+  if cache != "" and get==0 and os.path.isfile(cache+".npz"):
     data = numpy.load(cache+".npz")
     return (data["arr_0"], data["arr_1"], data["arr_2"],
             data["arr_3"], data["arr_4"], data["arr_5"], data["arr_6"])

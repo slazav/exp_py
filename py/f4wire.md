@@ -83,6 +83,7 @@ Arguments:
 * `name` -- wire name
 * `t1`, `t2` -- timestamps
 * `cache` -- prefix for cache file (will be saved in .npz format)
+* `get`   -- always get tada from database even if cache file exists (it will be updated)
 * `plot`  -- prefix for plot (.png)
 * `nsweeps`, `nskip`, `prev_sweeps` -- Use sweeps before (`prev_sweeps=1`) or after the data range.
    skip `nskip` sweeps and merge next `nsweeps` (with amplitude rescaled to drive).
