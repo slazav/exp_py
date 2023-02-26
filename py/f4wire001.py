@@ -11,7 +11,7 @@ import graphene002 as graphene
 def wire_dim(name):
   # Cell 2022
   if (name == 'w1ta2'): return (0.127, 3.61)  # measured on photo
-  if (name == 'w1ta2'): return (0.127, 5.16)  # measured on photo
+  if (name == 'w2ta2'): return (0.127, 5.16)  # measured on photo
   if (name == 'w1bh'): return (13.5e-3, 2.74) # measured on photo
   if (name == 'w2bh'): return (13.5e-3, 2.58) # measured on photo
   if (name == 'w1bt'): return (4.5e-3, 1.49)  # measured on photo
