@@ -256,8 +256,8 @@ def track_heat(data, fit):
 # Process tracking mode data.
 def get_track(name, t1, t2,
      get=0, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1,
-     fit_coord=0, fit_npars=6):
-  import fit_res001 as fit_res
+     fit_coord=0, fit_npars=6, fit_bphase=None):
+  import fit_res002 as fit_res
 
   if cache != "" and get==0 and os.path.isfile(cache+".npz"):
     data = numpy.load(cache+".npz")
@@ -266,6 +266,14 @@ def get_track(name, t1, t2,
 
   # Get data with correct current and voltage
   data = get_data(name, t1, t2)
+
+  # Get field
+  field = graphene.get_prev("demag_pc:f2", t1, usecols=1)[0][0]
+#  if bphase!=None:
+#    bphase[]
+
+  # Wire dimensions, mm (projection to plane perpendicular to B)
+  (wd, wl) = wire_dim(name)
 
   # Get previous frequency sweep for thermometer and heater:
   if prev_sweeps:
@@ -276,16 +284,16 @@ def get_track(name, t1, t2,
     sweep = merge_sweeps(sweep, same_drive=0)[0]
 
   # Fit the sweep
-  fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars)
+  fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, bphase=fit_bphase)
 
   # Scale offset and amplitude to new drive
   TT = data[:,0]
   FF = data[:,1]
   DD = data[:,4]
-  C = fit.C * DD/fit.drive
-  D = fit.D * DD/fit.drive
-  XX = data[:,2] - (fit.A + fit.E*(FF-fit.f0))*DD/fit.drive
-  YY = data[:,3] - (fit.B + fit.F*(FF-fit.f0))*DD/fit.drive
+  C = fit.C * DD
+  D = fit.D * DD
+  XX = data[:,2] - (fit.A + fit.E*(FF-fit.f0))*DD
+  YY = data[:,3] - (fit.B + fit.F*(FF-fit.f0))*DD
 
   # Resonance frequency and width:
   # coord:     X + i*Y = (C + i*D) / (f0^2-f^2 + i*f*df)
@@ -307,12 +315,6 @@ def get_track(name, t1, t2,
   # Power
   PWR = DD*Vperp
 
-  # Get field
-  field = graphene.get_prev("demag_pc:f2", t1, usecols=1)[0][0]
-
-  # Wire dimensions, mm (projection to plane perpendicular to B)
-  (wd, wl) = wire_dim(name)
-
   # Velocity
   vel=numpy.hypot(Vpar, Vperp)/field/(wl*1e-3)
 
@@ -326,9 +328,12 @@ def get_track(name, t1, t2,
     a.plot(sweep[:,1], sweep[:,2], 'r.', label="X")
     a.plot(sweep[:,1], sweep[:,3], 'b.', label="Y")
     ff=numpy.linspace(min(sweep[:,1]), max(sweep[:,1]), 100)
-    vv=fit.func(ff)
-    a.plot(ff, numpy.real(vv), 'k-', linewidth=1)
-    a.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
+    vv1=fit.func(ff, numpy.min(sweep[:,4]))
+    vv2=fit.func(ff, numpy.max(sweep[:,4]))
+    a.plot(ff, numpy.real(vv1), 'k-', linewidth=1)
+    a.plot(ff, numpy.imag(vv2), 'k-', linewidth=1)
+    a.plot(ff, numpy.real(vv1), 'k-', linewidth=1)
+    a.plot(ff, numpy.imag(vv2), 'k-', linewidth=1)
     a.set_xlabel("freq, Hz")
     a.set_ylabel("volt, Vrms")
     a.set_title("frequency sweep")
