@@ -36,7 +36,7 @@ def fitfuncS(par,bphase,F,D):
   s1=bphase[3]  # s1
   s2=bphase[4]  # s2
   V00=bphase[5] # v0/ttc [m/s]
-  ttc = -gap/numpy.log(par[5]/df0)
+  ttc = -gap/numpy.log(abs(par[5])/df0)
   while 1:
     vv0 = abs(V0)/V00/ttc
     df = dfi + par[5]/(1 + s1*vv0 + s2*vv0**2)
@@ -66,6 +66,7 @@ class fit_res_t:
   coord=0 # coord/velocity fit
   npars=6 # 6/8 pars
   (A,B,C,D,f0,df,E,F) = [0]*8 # fit parameters
+  (A_e,B_e,C_e,D_e,f0_e,df_e,E_e,F_e) = [0]*8 # fit parameter uncertainty
 
   def __init__(self, time,e,par,err, npars, coord, bphase):
     if len(par)!=8 or len(err)!=8:
@@ -86,6 +87,16 @@ class fit_res_t:
     self.df=par[5]
     self.E=par[6]
     self.F=par[7]
+    self.A_e=err[0]
+    self.B_e=err[1]
+    self.C_e=err[2]
+    self.D_e=err[3]
+    self.f0_e=err[4]
+    self.df_e=err[5]
+    self.E_e=err[6]
+    self.F_e=err[7]
+    self.amp=numpy.hypot(par[2], par[3])/par[5]
+    if coord: self.amp/=par[4]
 
   # function
   def func(self, f,d):
@@ -110,11 +121,13 @@ def fit(data, coord=0, npars=6, bphase=None, do_fit=1):
     print("ERROR: in bphase mode coord parameter should be 0")
     exit(1)
 
+  kv = numpy.max(numpy.hypot(data[:,2], data[:,3]))
+  kd = numpy.max(abs(data[:,4]))
   time  = numpy.mean(data[:,0])
   FF = data[:,1]
-  XX = data[:,2]
-  YY = data[:,3]
-  DD = data[:,4]
+  XX = data[:,2]/kv
+  YY = data[:,3]/kv
+  DD = data[:,4]/kd
 
   ##########################
   # Initial conditions.
@@ -161,18 +174,28 @@ def fit(data, coord=0, npars=6, bphase=None, do_fit=1):
 
   if do_fit:
     if bphase!=None:
-      par.extend(())
-      res = scipy.optimize.minimize(minfuncS, par, (bphase, FF,XX,YY,DD),
+      bphase_sc = list(bphase)
+      bphase_sc[-1] /= kv
+      res = scipy.optimize.minimize(minfuncS, par, (bphase_sc, FF,XX,YY,DD),
         options={'disp': False, 'maxiter': 1000})
     else:
       res = scipy.optimize.minimize(minfunc, par, (coord, FF,XX,YY,DD),
         options={'disp': False, 'maxiter': 1000})
-    err = numpy.diag(res.hess_inv).tolist()
+
+    # Parameter uncertainty which corresponds to res.fun
+    # which is relative RMS difference between function and the model.
+    # df = d2f/dx2 dx2 -> dx = dqrt(0.5*df*H^-1)
+    err = numpy.sqrt(0.5*res.fun*numpy.diag(res.hess_inv)).tolist()
     par = res.x.tolist()
     e = res.fun/FF.size
 
   if len(par)<8: par = par + [0,]*(8-len(par))
   if len(err)<8: err = err + [0,]*(8-len(err))
+
+  e*=kv
+  for i in (0,1,2,3,6,7):
+    par[i]*=kv/kd
+    err[i]*=kv/kd
 
   return fit_res_t(time, e, par, err, npars, coord, bphase)
 
