@@ -29,6 +29,7 @@ class fit_res_t:
   coord=0 # coord/velocity fit
   npars=6 # 6/8 pars
   (A,B,C,D,f0,df,E,F) = [0]*8 # fit parameters
+  (A_e,B_e,C_e,D_e,f0_e,df_e,E_e,F_e) = [0]*8 # fit parameter uncertainty
 
   def __init__(self, time,drive,e,par,err, npars, coord):
     if len(par)!=8 or len(err)!=8:
@@ -49,6 +50,16 @@ class fit_res_t:
     self.df=par[5]
     self.E=par[6]
     self.F=par[7]
+    self.A_e=err[0]
+    self.B_e=err[1]
+    self.C_e=err[2]
+    self.D_e=err[3]
+    self.f0_e=err[4]
+    self.df_e=err[5]
+    self.E_e=err[6]
+    self.F_e=err[7]
+    self.amp=numpy.hypot(par[2], par[3])/par[5]
+    if coord: self.amp/=par[4]
 
   # function
   def func(self, f):
@@ -129,7 +140,11 @@ def fit(data, coord=0, npars=6, do_fit=1):
   if do_fit:
     res = scipy.optimize.minimize(minfunc, par, (coord, FF,XX,YY),
       options={'disp': False, 'maxiter': 1000})
-    err = numpy.diag(res.hess_inv).tolist()
+
+    # Parameter uncertainty which corresponds to res.fun
+    # which is relative RMS difference between function and the model.
+    # df = d2f/dx2 dx2 -> dx = dqrt(0.5*df*H^-1)
+    err = numpy.sqrt(0.5*res.fun*numpy.diag(res.hess_inv)).tolist()
     par = res.x.tolist()
     e = res.fun/FF.size
 
@@ -144,10 +159,4 @@ def fit(data, coord=0, npars=6, do_fit=1):
   ret = fit_res_t(time, drive, e, par, err, npars, coord)
 
   return ret
-#  return (time, drive, e, par, err)
-#  return [time, drive, e,
-#    par[0], err[0], par[1], err[1],
-#    par[2], err[2], par[3], err[3],
-#    par[4], err[4], par[5], err[5],
-#    par[6], err[6], par[7], err[7]]
 
