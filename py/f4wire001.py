@@ -7,38 +7,88 @@ import os
 import graphene002 as graphene
 
 ###########################################################
+# Class for vibrating wire information
+
+wire_info_tab = {
+  # Cell 2020
+  #         diameter, cm   length, cm    density, g/cm^3
+  'w1ta2': {'d': 127e-4,   'l': 3.61e-1, 'rho': 16.7}, # length measured on photo
+  'w2ta2': {'d': 127e-4,   'l': 5.16e-1, 'rho': 16.7}, # length measured on photo
+  'w1bh':  {'d': 13.5e-4,  'l': 2.74e-1, 'rho': 6.05}, # length measured on photo
+  'w2bh':  {'d': 13.5e-4,  'l': 2.58e-1, 'rho': 6.05}, # length measured on photo
+  # thin wires of classical design
+  'w1bt':  {'d': 4.5e-4,   'l': 1.49e-1, 'rho': 6.05}, # length measured on photo
+  'w2bt':  {'d': 4.5e-4,   'l': 1.43e-1, 'rho': 6.05}, # length measured on photo
+  'w1a':   {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w2a':   {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w1b':   {'d': 0.315e-4, 'l': 1e-1,    'rho': 6.05}, # unknown length
+  'w2b':   {'d': 0.180e-4, 'l': 1e-1,    'rho': 6.05}, # unknown length
+  # wires on PCB
+  'w1c':   {'d': 0.390e-4, 'l': 0.5e-1,  'rho': 6.05}, # unknown length
+  'w2c':   {'d': 0.315e-4, 'l': 0.5e-1,  'rho': 6.05}, # unknown length
+  'w1d':   {'d': 0.180e-4, 'l': 0.5e-1,  'rho': 6.05}, # unknown length
+  'w2d':   {'d': 0.180e-4, 'l': 0.5e-1,  'rho': 6.05}, # unknown length
+  # Cell 2020
+  'w0ta':  {'d': 127e-4,   'l': 5.0e-1,  'rho': 16.7},  # unknown length
+  'w1ta':  {'d': 127e-4,   'l': 4.87e-1, 'rho': 16.7},  # length measured on photo
+  'w2ta':  {'d': 127e-4,   'l': 5.13e-1, 'rho': 16.7},  # length measured on photo
+  'w0um':  {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w1um':  {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w2um':  {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w1nm':  {'d': 0.45e-4,  'l': 1e-1,    'rho': 6.05}, # unknown length
+  'w2nm':  {'d': 0.45e-4,  'l': 1e-1,    'rho': 6.05}, # unknown length
+  #
+  'mcta':  {'d': 127e-4,   'l': 5e-1,    'rho': 16.7},  # unknown length
+}
+
+class wire_info_t:
+  d = 0    # diameter [cm]
+  l = 0    # length (projection to plane perpendicular to B) [cm]
+  rho = 0  # material density [g/cm^3].
+
+  dfi0 = 0 # intrinsic width at zero field [Hz]
+  dfi2 = 0 # field-dependent part of intrinsic width [Hz/T^2]
+  s0 = 1   # S-function parameters
+  s1 = 0   #
+  s2 = 0   #
+
+  # 4-th power polyfit of  pF^2 * vF * 2N(0)/2 [sgs] vs P [bar]
+  pp_d = (-1.6016e-03, 1.2582e-01, -3.9976e+00, 8.8950e+01, 2.0300e+03)
+  # 4-th power polyfit of  kTc/pF [sgs] vs P [bar]
+  pp_v = (-2.9402e-06, 2.5419e-04, -9.4237e-03, 2.0209e-01, 1.5584e+00)
+  # 4-th power polyfit of gap/kTc vs P [bar]
+  pp_g = (-1.8629e-07, 1.4784e-05, -4.6497e-04, 8.8839e-03, 1.7725e+00)
+
+  # field-dependent intrinsic width [Hz]
+  def dfi(self, B): return dfi0 + dfi2 * B**2
+
+  # v0 [cm/s] and delta0 [Hz] parameters:
+  def delta0(self, P, ttc):
+    gap = numpy.polyval(self.pp_g, P)
+    return numpy.polyval(self.pp_d, P)/rho/d * numpy.exp(-gap/ttc)
+  def v0(self, P, ttc):
+    return numpy.polyval(self.pp_v, P)*ttc
+
+  def __init__(self, name):
+    if name not in wire_info_tab:
+      raise Exception("'ERROR: f4wire: unknown name: ' + name")
+    w = wire_info_tab[name]
+    if 'd'   in w: self.d   = w['d']
+    if 'l'   in w: self.l   = w['l']
+    if 'rho' in w: self.rho = w['rho']
+    if 'dfi0' in w: self.dfi0 = w['dfi0']
+    if 'dfi2' in w: self.dfi2 = w['dfi2']
+    if 'd'   in w: self.d   = w['d']
+    if 'l'   in w: self.l   = w['l']
+    return
+
+###########################################################
 # Wire thickness and length (projection to plane perpendicular to B), mm
 def wire_dim(name):
-  # Cell 2022
-  if (name == 'w1ta2'): return (0.127, 3.61)  # measured on photo
-  if (name == 'w2ta2'): return (0.127, 5.16)  # measured on photo
-  if (name == 'w1bh'): return (13.5e-3, 2.74) # measured on photo
-  if (name == 'w2bh'): return (13.5e-3, 2.58) # measured on photo
-  if (name == 'w1bt'): return (4.5e-3, 1.49)  # measured on photo
-  if (name == 'w2bt'): return (4.5e-3, 1.43) # measured on photo
-  # thin wires of classical design
-  if (name == 'w1a'): return (4.5e-3, 1.4) # unknown length
-  if (name == 'w2a'): return (4.5e-3, 1.4) # unknown length
-  if (name == 'w1b'): return (0.315e-3, 1) # unknown length
-  if (name == 'w2b'): return (0.180e-3, 1) # unknown length
-  # wires on PCB
-  if (name == 'w1c'): return (0.390e-3, 1) # unknown length
-  if (name == 'w2c'): return (0.315e-3, 1) # unknown length
-  if (name == 'w1d'): return (0.180e-3, 1) # unknown length
-  if (name == 'w2d'): return (0.180e-3, 1) # unknown length
-  # Cell 2020
-  if (name == 'w0ta'): return (0.127, 5.0)  # unknown length
-  if (name == 'w1ta'): return (0.127, 4.87)  # measured on photo
-  if (name == 'w2ta'): return (0.127, 5.13)  # measured on photo
-  if (name == 'w0um'): return (4.5e-3, 1.4) # unknown length
-  if (name == 'w1um'): return (4.5e-3, 1.4) # unknown length
-  if (name == 'w2um'): return (4.5e-3, 1.4) # unknown length
-  if (name == 'w1nm'): return (0.45e-3, 1) # unknown length
-  if (name == 'w2nm'): return (0.45e-3, 1) # unknown length
-  #
-  if (name == 'mcta'): return (0.127, 5.0)  # unknown length
-  print('ERROR: f4wire.wire_len: unknown name: ', name, file=sys.stderr)
-  exit(1)
+  if name not in wire_info_tab:
+    raise Exception("'ERROR: f4wire: unknown name: ' + name")
+  w = wire_info_tab[name]
+  return (w['d']*0.1, w['l']*0.1)
 
 ###########################################################
 # Calculate background using standard 12-parameter model.
