@@ -41,8 +41,9 @@ for s in sweeps:
   ax[0].plot(ffc, sh + xxc, 'k-')
   ax[1].plot(ffc, sh + yyc, 'k-')
 
-plt.xlabel('freq, Hz')
-plt.ylabel('voltage, V')
-plt.legend()
+ax[0].set_xlabel('freq [Hz]')
+ax[1].set_xlabel('freq [Hz]')
+ax[0].set_ylabel('Vx/I [V/A]')
+ax[1].set_ylabel('Vy/I [V/A]')
 plt.gcf().set_size_inches(12, 6)
 plt.savefig("fit_res002_bphase.png", dpi=100)
