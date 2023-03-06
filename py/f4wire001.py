@@ -51,7 +51,6 @@ wire_info_tab = {
 # w1b 3.182436*B^2 + 0.358630
 # w2d 101.593025*B^2 + 0.436765
 
-
 ## add B-phase non-linear parameters
 ####                                 cm/s          Hz             Hz/T^2
 wire_info_tab['w1a'].update(  {'vmax': 0.14, 'dfi0': 0.292,  'dfi2': 14.82, 'S0': 1, 'S1': 6.7859, 'S2': -3.7249})
@@ -123,20 +122,16 @@ class wire_info_t:
 
     ttcp = 0.2 # starting point for iterations
     for i in range(20):
-      if delta<=dfi or ttcp==0:
-        S = 1
-        ttc = 0
-      else:
-        S = self.sfunc(P,B,ttcp,vel=vel,volt=volt)
-        ttc = -gap/numpy.log((delta - dfi)/d0/S)
-      if (abs(ttc-ttcp) < 1e-6): break
+      S = self.sfunc(P,B,ttcp,vel=vel,volt=volt)
+      ttc = -gap/numpy.log((delta - dfi)/d0/S)
+      if (numpy.max(abs(ttc-ttcp)) < 1e-6): break
       else: ttcp = ttc
     return ttc
 
   #####################
   # Correction, delta0(P,B,V,delta)
   def delta0(self, P, B, delta, vel=None, volt=None):
-    ttc = self.ttc(P, B, delta, vel=None, volt=None)
+    ttc = self.delta_to_ttc(P, B, delta, vel=vel, volt=volt)
     dfi = self.dfi0 + self.dfi2 * B**2
     return (delta-dfi)/self.sfunc(P,B,ttc,vel=vel,volt=volt)
 
@@ -399,6 +394,9 @@ def get_track(name, t1, t2,
   # Get field
   field = graphene.get_prev("demag_pc:f2", t1, usecols=1)[0][0]
 
+  # Get pressure
+  press = graphene.get_prev("cell_press", t1, usecols=1)[0][0]
+
   # Wire dimensions, mm (projection to plane perpendicular to B)
   (wd, wl) = wire_dim(name)
 
@@ -411,7 +409,7 @@ def get_track(name, t1, t2,
     sweep = merge_sweeps(sweep, same_drive=0)[0]
 
   # Fit the sweep
-  fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, bphase=bphase)
+  fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, bphase=bphase, press=press, field=field)
 
   # Scale offset and amplitude to new drive
   TT = data[:,0]
@@ -438,6 +436,11 @@ def get_track(name, t1, t2,
   else:
     Vpar = (C*YY - D*XX)/numpy.hypot(C,D)
     Vperp = (C*XX + D*YY)/numpy.hypot(C,D)
+
+  if bphase!=None:
+    dFcorr = bphase.delta0(press, field, dF, volt=numpy.hypot(Vpar, Vperp))
+  else:
+    dFcorr = dF
 
   # Power
   PWR = DD*Vperp
@@ -469,9 +472,13 @@ def get_track(name, t1, t2,
     # width and frequency in tracking mode
     a1=ax[0,1]
     a2=a1.twinx()
-    a2.plot(TT-t0, F0, 'b.-', label="f0rack")
-    a2.plot(TT-t0, FF, 'g.-', label="f_meas")
-    a1.plot(TT-t0, dF, 'r.-', label="dfrack")
+    a2.plot(TT-t0, F0, 'b-', label="f0 track")
+    a2.plot(TT-t0, FF, 'g-', label="f meas")
+
+    a1.plot(TT-t0, dF, 'r-', label="df track")
+    if bphase!=None:
+      a1.plot(TT-t0, dFcorr, 'm-', label="dF corr")
+
     xx=[0, TT[-1]-t0]
     a1.plot(xx, [fit.df]*2, 'm-', label='df_fit')
     a2.plot(xx, [fit.f0]*2, 'c-', label='f0_fit')
