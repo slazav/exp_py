@@ -7,79 +7,152 @@ import os
 import graphene002 as graphene
 
 ###########################################################
-# Class for vibrating wire information
+# vibrating wire information
 
 wire_info_tab = {
   # Cell 2020
-  #         diameter, cm   length, cm    density, g/cm^3
-  'w1ta2': {'d': 127e-4,   'l': 3.61e-1, 'rho': 16.7}, # length measured on photo
-  'w2ta2': {'d': 127e-4,   'l': 5.16e-1, 'rho': 16.7}, # length measured on photo
-  'w1bh':  {'d': 13.5e-4,  'l': 2.74e-1, 'rho': 6.05}, # length measured on photo
-  'w2bh':  {'d': 13.5e-4,  'l': 2.58e-1, 'rho': 6.05}, # length measured on photo
+  #         diameter, cm   length, cm    density, g/cm^3  cm/s
+  'w1ta2': {'D': 127e-4,   'L': 3.61e-1, 'rho': 16.7}, # length measured on photo
+  'w2ta2': {'D': 127e-4,   'L': 5.16e-1, 'rho': 16.7}, # length measured on photo
+  'w1bh':  {'D': 13.5e-4,  'L': 2.74e-1, 'rho': 6.05}, # length measured on photo
+  'w2bh':  {'D': 13.5e-4,  'L': 2.58e-1, 'rho': 6.05}, # length measured on photo
   # thin wires of classical design
-  'w1bt':  {'d': 4.5e-4,   'l': 1.49e-1, 'rho': 6.05}, # length measured on photo
-  'w2bt':  {'d': 4.5e-4,   'l': 1.43e-1, 'rho': 6.05}, # length measured on photo
-  'w1a':   {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
-  'w2a':   {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
-  'w1b':   {'d': 0.315e-4, 'l': 1e-1,    'rho': 6.05}, # unknown length
-  'w2b':   {'d': 0.180e-4, 'l': 1e-1,    'rho': 6.05}, # unknown length
+  'w1bt':  {'D': 4.5e-4,   'L': 1.49e-1, 'rho': 6.05}, # length measured on photo
+  'w2bt':  {'D': 4.5e-4,   'L': 1.43e-1, 'rho': 6.05}, # length measured on photo
+  'w1a':   {'D': 4.5e-4,   'L': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w2a':   {'D': 4.5e-4,   'L': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w1b':   {'D': 0.315e-4, 'L': 1e-1,    'rho': 6.05}, # unknown length
+  'w2b':   {'D': 0.180e-4, 'L': 1e-1,    'rho': 6.05}, # unknown length
   # wires on PCB
-  'w1c':   {'d': 0.390e-4, 'l': 0.5e-1,  'rho': 6.05}, # unknown length
-  'w2c':   {'d': 0.315e-4, 'l': 0.5e-1,  'rho': 6.05}, # unknown length
-  'w1d':   {'d': 0.180e-4, 'l': 0.5e-1,  'rho': 6.05}, # unknown length
-  'w2d':   {'d': 0.180e-4, 'l': 0.5e-1,  'rho': 6.05}, # unknown length
+  'w1c':   {'D': 0.390e-4, 'L': 0.5e-1,  'rho': 6.05}, # unknown length
+  'w2c':   {'D': 0.315e-4, 'L': 0.5e-1,  'rho': 6.05}, # unknown length
+  'w1d':   {'D': 0.180e-4, 'L': 0.5e-1,  'rho': 6.05}, # unknown length
+  'w2d':   {'D': 0.180e-4, 'L': 0.5e-1,  'rho': 6.05}, # unknown length
   # Cell 2020
-  'w0ta':  {'d': 127e-4,   'l': 5.0e-1,  'rho': 16.7},  # unknown length
-  'w1ta':  {'d': 127e-4,   'l': 4.87e-1, 'rho': 16.7},  # length measured on photo
-  'w2ta':  {'d': 127e-4,   'l': 5.13e-1, 'rho': 16.7},  # length measured on photo
-  'w0um':  {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
-  'w1um':  {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
-  'w2um':  {'d': 4.5e-4,   'l': 1.4e-1,  'rho': 6.05}, # unknown length
-  'w1nm':  {'d': 0.45e-4,  'l': 1e-1,    'rho': 6.05}, # unknown length
-  'w2nm':  {'d': 0.45e-4,  'l': 1e-1,    'rho': 6.05}, # unknown length
+  'w0ta':  {'D': 127e-4,   'L': 5.0e-1,  'rho': 16.7},  # unknown length
+  'w1ta':  {'D': 127e-4,   'L': 4.87e-1, 'rho': 16.7},  # length measured on photo
+  'w2ta':  {'D': 127e-4,   'L': 5.13e-1, 'rho': 16.7},  # length measured on photo
+  'w0um':  {'D': 4.5e-4,   'L': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w1um':  {'D': 4.5e-4,   'L': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w2um':  {'D': 4.5e-4,   'L': 1.4e-1,  'rho': 6.05}, # unknown length
+  'w1nm':  {'D': 0.45e-4,  'L': 1e-1,    'rho': 6.05}, # unknown length
+  'w2nm':  {'D': 0.45e-4,  'L': 1e-1,    'rho': 6.05}, # unknown length
   #
-  'mcta':  {'d': 127e-4,   'l': 5e-1,    'rho': 16.7},  # unknown length
+  'mcta':  {'D': 127e-4,   'L': 5e-1,    'rho': 16.7},  # unknown length
 }
 
+# Intrinsic width measurements in vacuum, 2023-01-07:
+# w1bh -2.789404*B^2 + 2.098990
+# w2bh -4.708766*B^2 + 2.480987
+# w1a 14.815948*B^2 + 0.767711
+# w2a 4.852521*B^2 + 0.494533
+# w1bt 9.220223*B^2 + 0.636275
+# w2bt 33.285247*B^2 + 0.791410
+# w1b 3.182436*B^2 + 0.358630
+# w2d 101.593025*B^2 + 0.436765
+
+
+## add B-phase non-linear parameters
+####                                 cm/s          Hz             Hz/T^2
+wire_info_tab['w1a'].update(  {'vmax': 0.14, 'dfi0': 0.292,  'dfi2': 14.82, 'S0': 1, 'S1': 6.7859, 'S2': -3.7249})
+wire_info_tab['w1b'].update(  {'vmax': 0.72, 'dfi0': 0.0507, 'dfi2': 3.182, 'S0': 1, 'S1': 0.4699, 'S2':  0.0151})
+wire_info_tab['w2a'].update(  {'vmax': 0.39, 'dfi0': 0.0810, 'dfi2': 4.853, 'S0': 1, 'S1': 1.0609, 'S2':  0.1434})
+wire_info_tab['w1bt'].update( {'vmax': 0.45, 'dfi0': 0.1664, 'dfi2': 9.220, 'S0': 1, 'S1': 1.2103, 'S2': 0.1638})
+wire_info_tab['w2bt'].update( {'vmax': 0.19, 'dfi0': 0.2492, 'dfi2': 33.29, 'S0': 1, 'S1': 3.4182, 'S2': 0.1825})
+wire_info_tab['w1bh'].update( {'vmax': 0.32, 'dfi0': 0.3314, 'dfi2': 0.000, 'S0': 1, 'S1': 3.2977, 'S2': -0.8180})
+wire_info_tab['w2bh'].update( {'vmax': 0.29, 'dfi0': 0.4377, 'dfi2': 0.000, 'S0': 1, 'S1': 2.2225, 'S2': -0.3893})
+wire_info_tab['w1ta2'].update({'vmax': 0.49, 'dfi0': 0.0000, 'dfi2': 0.000, 'S0': 1, 'S1': 0.4508, 'S2': 0.1005})
+wire_info_tab['w2ta2'].update({'vmax': 0.55, 'dfi0': 0.1966, 'dfi2': 0.000, 'S0': 1, 'S1': 0.5634, 'S2': 0.0383})
+
 class wire_info_t:
-  d = 0    # diameter [cm]
-  l = 0    # length (projection to plane perpendicular to B) [cm]
+  D = 0    # diameter [cm]
+  L = 0    # length (projection to plane perpendicular to B) [cm]
   rho = 0  # material density [g/cm^3].
 
+  # B-phase non-linear parameters:
+  vmax = 0 # max velocity for the non-linear model [cm/s]
   dfi0 = 0 # intrinsic width at zero field [Hz]
   dfi2 = 0 # field-dependent part of intrinsic width [Hz/T^2]
-  s0 = 1   # S-function parameters
-  s1 = 0   #
-  s2 = 0   #
+  S0 = 1   # S-function parameters
+  S1 = 0   #
+  S2 = 0   #
 
   # 4-th power polyfit of  pF^2 * vF * 2N(0)/2 [sgs] vs P [bar]
   pp_d = (-1.6016e-03, 1.2582e-01, -3.9976e+00, 8.8950e+01, 2.0300e+03)
-  # 4-th power polyfit of  kTc/pF [sgs] vs P [bar]
+  # 4-th power polyfit of  kTc/pF [cm/s] vs P [bar]
   pp_v = (-2.9402e-06, 2.5419e-04, -9.4237e-03, 2.0209e-01, 1.5584e+00)
   # 4-th power polyfit of gap/kTc vs P [bar]
   pp_g = (-1.8629e-07, 1.4784e-05, -4.6497e-04, 8.8839e-03, 1.7725e+00)
 
-  # field-dependent intrinsic width [Hz]
-  def dfi(self, B): return dfi0 + dfi2 * B**2
+  #####################
+  # correction function S
+  def sfunc(self, P, B, ttc, vel=None, volt=None):
+    if type(volt)!= type(None):
+      vel = volt/B/self.L * 1e4  # V/T/cm -> cm/s
+    if type(vel) == type(None):
+      raise Exception("wire_info_t::delta: missing vel or volt parameter")
+    vv = vel / (numpy.polyval(self.pp_v, P)*ttc)  # v/v0
+    return self.S0/(1 + self.S1*vv + self.S2*vv**2)
 
-  # v0 [cm/s] and delta0 [Hz] parameters:
-  def delta0(self, P, ttc):
+  def ttc_to_delta0(self, P, ttc):
+    if ttc <= 0: return 0
     gap = numpy.polyval(self.pp_g, P)
-    return numpy.polyval(self.pp_d, P)/rho/d * numpy.exp(-gap/ttc)
-  def v0(self, P, ttc):
-    return numpy.polyval(self.pp_v, P)*ttc
+    d0  = 2*numpy.polyval(self.pp_d, P)/self.rho/self.D / (2*numpy.pi) #[sgs]
+    return d0 * numpy.exp(-gap/ttc) 
 
+  def delta0_to_ttc(self, P, delta0):
+    if delta0 <= 0: return 0
+    gap = numpy.polyval(self.pp_g, P)
+    d0  = 2*numpy.polyval(self.pp_d, P)/self.rho/self.D / (2*numpy.pi) #[sgs]
+    return -gap/numpy.log(delta0/d0)
+
+  #####################
+  # calibration delta(P,B,V,ttc)
+  def ttc_to_delta(self, P, B, ttc, vel=None, volt=None):
+    dfi = self.dfi0 + self.dfi2 * B**2
+    delta0 = self.ttc_to_delta0(P, ttc)
+    S = self.sfunc(P,B, ttc, vel=vel, volt=volt)
+    return dfi + delta0*S
+
+  #####################
+  # Inversed calibration, ttc(P,B,V,delta)
+  def delta_to_ttc(self, P, B, delta, vel=None, volt=None):
+    dfi = self.dfi0 + self.dfi2 * B**2
+    gap = numpy.polyval(self.pp_g, P)
+    d0 = 2*numpy.polyval(self.pp_d, P)/self.rho/self.D / (2*numpy.pi) #[sgs]
+
+    ttcp = 0.2 # starting point for iterations
+    for i in range(20):
+      if delta<=dfi or ttcp==0:
+        S = 1
+        ttc = 0
+      else:
+        S = self.sfunc(P,B,ttcp,vel=vel,volt=volt)
+        ttc = -gap/numpy.log((delta - dfi)/d0/S)
+      if (abs(ttc-ttcp) < 1e-6): break
+      else: ttcp = ttc
+    return ttc
+
+  #####################
+  # Correction, delta0(P,B,V,delta)
+  def delta0(self, P, B, delta, vel=None, volt=None):
+    ttc = self.ttc(P, B, delta, vel=None, volt=None)
+    dfi = self.dfi0 + self.dfi2 * B**2
+    return (delta-dfi)/self.sfunc(P,B,ttc,vel=vel,volt=volt)
+
+  #####################
   def __init__(self, name):
     if name not in wire_info_tab:
       raise Exception("'ERROR: f4wire: unknown name: ' + name")
     w = wire_info_tab[name]
-    if 'd'   in w: self.d   = w['d']
-    if 'l'   in w: self.l   = w['l']
+    if 'D'   in w: self.D   = w['D']
+    if 'L'   in w: self.L   = w['L']
     if 'rho' in w: self.rho = w['rho']
     if 'dfi0' in w: self.dfi0 = w['dfi0']
     if 'dfi2' in w: self.dfi2 = w['dfi2']
-    if 'd'   in w: self.d   = w['d']
-    if 'l'   in w: self.l   = w['l']
+    if 'S0'   in w: self.S0   = w['S0']
+    if 'S1'   in w: self.S1   = w['S1']
+    if 'S2'   in w: self.S2   = w['S2']
     return
 
 ###########################################################
@@ -88,7 +161,7 @@ def wire_dim(name):
   if name not in wire_info_tab:
     raise Exception("'ERROR: f4wire: unknown name: ' + name")
   w = wire_info_tab[name]
-  return (w['d']*0.1, w['l']*0.1)
+  return (w['D']*10, w['L']*10)
 
 ###########################################################
 # Calculate background using standard 12-parameter model.
@@ -302,25 +375,29 @@ def track_heat(data, fit):
 
   return data[:,4]*Vperp
 
+
+
 ###########################################################
 # Process tracking mode data.
 def get_track(name, t1, t2,
      get=0, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1,
-     fit_coord=0, fit_npars=6, fit_bphase=None):
+     fit_coord=0, fit_npars=6, bphase=None):
   import fit_res002 as fit_res
 
   if cache != "" and get==0 and os.path.isfile(cache+".npz"):
     data = numpy.load(cache+".npz")
-    return (data["arr_0"], data["arr_1"], data["arr_2"],
-            data["arr_3"], data["arr_4"], data["arr_5"], data["arr_6"])
+
+    # old cache files have less data
+    if 'arr_7' in data:
+      return (data["arr_0"], data["arr_1"], data["arr_2"],
+              data["arr_3"], data["arr_4"], data["arr_5"],
+              data["arr_6"], data["arr_7"])
 
   # Get data with correct current and voltage
   data = get_data(name, t1, t2)
 
   # Get field
   field = graphene.get_prev("demag_pc:f2", t1, usecols=1)[0][0]
-#  if bphase!=None:
-#    bphase[]
 
   # Wire dimensions, mm (projection to plane perpendicular to B)
   (wd, wl) = wire_dim(name)
@@ -334,7 +411,7 @@ def get_track(name, t1, t2,
     sweep = merge_sweeps(sweep, same_drive=0)[0]
 
   # Fit the sweep
-  fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, bphase=fit_bphase)
+  fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, bphase=bphase)
 
   # Scale offset and amplitude to new drive
   TT = data[:,0]
@@ -426,8 +503,8 @@ def get_track(name, t1, t2,
     plt.savefig(plot, dpi=100)
     plt.close()
 
-  if cache != "": numpy.savez(cache, TT, F0, dF, Vpar, Vperp, vel, PWR)
-  return (TT, F0, dF, Vpar, Vperp, vel, PWR)
+  if cache != "": numpy.savez(cache, TT, F0, dF, Vpar, Vperp, vel, PWR, field)
+  return (TT, F0, dF, Vpar, Vperp, vel, PWR, field)
 
 ###########################################################
 # Process background sweep.

@@ -11,12 +11,9 @@ import scipy.optimize
 ###############################################################
 # complex function used for fitting
 def fitfunc(par,coord,F,D):
-
   V = (par[2] + 1j*par[3])*D/(par[4]**2 - F**2 + 1j*F*par[5])
-
   if not coord: V *= 1j*F  # velocity fit
   V += (par[0] + 1j*par[1])*D
-
   if len(par)==8: V += (par[6] + 1j*par[7])*(F-par[4])*D
   return V
 
@@ -27,32 +24,26 @@ def minfunc(par, coord,F,X,Y,D):
 
 
 ###############################################################
-# complex function used for fitting -- non-linear regime
-def fitfuncS(par,bphase,F,D):
+# complex function used for fitting -- B-phase non-linear regime
+def fitfuncS(par,bphase, press, field, kv, F,D):
   V0 = 0
-  gap=bphase[0] # gap/kTc
-  dfi=bphase[1] # dfi [Hz]
-  df0=bphase[2] # s0*df0/exp(-gap/ttc), [Hz]
-  s1=bphase[3]  # s1
-  s2=bphase[4]  # s2
-  V00=bphase[5] # v0/ttc [m/s]
-  ttc = -gap/numpy.log(abs(par[5])/df0)
-  while 1:
-    vv0 = abs(V0)/V00/ttc
-    df = dfi + par[5]/(1 + s1*vv0 + s2*vv0**2)
 
-    V = 1j*F * (par[2] + 1j*par[3])*D/(par[4]**2 - F**2 + 1j*F*df)
-    if numpy.max(abs(V-V0)/abs(V)) < 1e-4: break
+  # par[5] is delta0
+  ttc = bphase.delta0_to_ttc(press, abs(par[5]))
+
+  while 1:
+    delta = bphase.ttc_to_delta(press, field, ttc, volt=abs(V0)*kv)
+    V = 1j*F * (par[2] + 1j*par[3])*D/(par[4]**2 - F**2 + 1j*F*delta)
+    if numpy.max(abs(V-V0)/abs(V)) < 1e-6: break
     V0 = V
 
   V += (par[0] + 1j*par[1])*D
-
   if len(par)==8: V += (par[6] + 1j*par[7])*(F-par[4])*D
   return V
 
 # function for minimization
-def minfuncS(par, bphase, F,X,Y,D):
-  V = fitfuncS(par, bphase, F,D)
+def minfuncS(par, bphase, press,field, kv, F,X,Y,D):
+  V = fitfuncS(par, bphase, press,field, kv, F,D)
   return numpy.linalg.norm(X + 1j*Y - V)/numpy.linalg.norm(X + 1j*Y)
 
 
@@ -68,7 +59,11 @@ class fit_res_t:
   (A,B,C,D,f0,df,E,F) = [0]*8 # fit parameters
   (A_e,B_e,C_e,D_e,f0_e,df_e,E_e,F_e) = [0]*8 # fit parameter uncertainty
 
-  def __init__(self, time,e,par,err, npars, coord, bphase):
+  press=0  # pressure [bar]
+  field=0  # field [T]
+  bphase = None
+
+  def __init__(self, time,e,par,err, npars, coord, bphase, press, field):
     if len(par)!=8 or len(err)!=8:
       print("ERROR: fit_res_t: list of size 8 expected")
       exit(1)
@@ -77,7 +72,6 @@ class fit_res_t:
     self.par=par
     self.err=err
     self.coord=coord
-    self.bphase=bphase
     self.npars=npars
     self.A=par[0]
     self.B=par[1]
@@ -95,13 +89,16 @@ class fit_res_t:
     self.df_e=err[5]
     self.E_e=err[6]
     self.F_e=err[7]
+    self.bphase=bphase
+    self.press=press
+    self.field=field
     self.amp=numpy.hypot(par[2], par[3])/par[5]
     if coord: self.amp/=par[4]
 
   # function
   def func(self, f,d):
     if self.bphase!=None:
-      return fitfuncS(self.par, self.bphase, f,d)
+      return fitfuncS(self.par, self.bphase, self.press, self.field, 1, f,d)
     else:
       return fitfunc(self.par, self.coord, f,d)
 
@@ -111,7 +108,7 @@ class fit_res_t:
 # data is Nx5 numpy array with usual columns:
 #   T-F-X-Y-D
 
-def fit(data, coord=0, npars=6, bphase=None, do_fit=1):
+def fit(data, coord=0, npars=6, bphase=None, press=0, field=0, do_fit=1):
 
   if npars!=6 and npars!=8:
     print("ERROR: npars should be 6 or 8")
@@ -174,9 +171,7 @@ def fit(data, coord=0, npars=6, bphase=None, do_fit=1):
 
   if do_fit:
     if bphase!=None:
-      bphase_sc = list(bphase)
-      bphase_sc[-1] /= kv
-      res = scipy.optimize.minimize(minfuncS, par, (bphase_sc, FF,XX,YY,DD),
+      res = scipy.optimize.minimize(minfuncS, par, (bphase, press, field, kv, FF,XX,YY,DD),
         options={'disp': False, 'maxiter': 1000})
     else:
       res = scipy.optimize.minimize(minfunc, par, (coord, FF,XX,YY,DD),
@@ -197,5 +192,5 @@ def fit(data, coord=0, npars=6, bphase=None, do_fit=1):
     par[i]*=kv/kd
     err[i]*=kv/kd
 
-  return fit_res_t(time, e, par, err, npars, coord, bphase)
+  return fit_res_t(time, e, par, err, npars, coord, bphase, press, field)
 
