@@ -49,30 +49,16 @@ def minfuncS(par, bphase, press,field, kv, F,X,Y,D):
 
 ###############################################################
 class fit_res_t:
-  par=[] # 8-values: A,B,C,D,f0,df,E,F
-  err=[] # parameter uncertainties
-  time=0  # Mean time
-  drive=0 # Mean drive
-  e=0     # RMS difference between data and model
-  coord=0 # coord/velocity fit
-  npars=6 # 6/8 pars
-  (A,B,C,D,f0,df,E,F) = [0]*8 # fit parameters
-  (A_e,B_e,C_e,D_e,f0_e,df_e,E_e,F_e) = [0]*8 # fit parameter uncertainty
-
-  press=0  # pressure [bar]
-  field=0  # field [T]
-  bphase = None
-
   def __init__(self, time,e,par,err, npars, coord, bphase, press, field):
     if len(par)!=8 or len(err)!=8:
       print("ERROR: fit_res_t: list of size 8 expected")
       exit(1)
-    self.time=time
-    self.e=e
-    self.par=par
-    self.err=err
-    self.coord=coord
-    self.npars=npars
+    self.time=time   # Mean time
+    self.e=e         # RMS difference between data and model
+    self.coord=coord # coord/velocity fit
+    self.npars=npars # 6/8 pars
+    self.par=par     # parameters (8 members)
+    self.err=err     # parameter uncertainties (8 members)
     self.A=par[0]
     self.B=par[1]
     self.C=par[2]
