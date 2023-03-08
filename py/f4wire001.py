@@ -376,49 +376,66 @@ def track_heat(data, fit):
 # Process tracking mode data.
 def get_track(name, t1, t2,
      get=0, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1,
-     fit_coord=0, fit_npars=6, bphase=None):
+     fit_coord=0, fit_npars=6, use_bphase=0):
   import fit_res002 as fit_res
 
+
+  ############################
+  # get data from DB or cache
   if cache != "" and get==0 and os.path.isfile(cache+".npz"):
-    data = numpy.load(cache+".npz")
+    d = numpy.load(cache+".npz")
+    (data, sweep, field, press) = (d["arr_0"], d["arr_1"], d["arr_2"], d["arr_3"])
 
-    # old cache files have less data
-    if 'arr_7' in data:
-      return (data["arr_0"], data["arr_1"], data["arr_2"],
-              data["arr_3"], data["arr_4"], data["arr_5"],
-              data["arr_6"], data["arr_7"])
-
-  # Get data with correct current and voltage
-  data = get_data(name, t1, t2)
-
-  # Get field
-  field = graphene.get_prev("demag_pc:f2", t1, usecols=1)[0][0]
-
-  # Get pressure
-  press = graphene.get_prev("cell_press", t1, usecols=1)[0][0]
-
-  # Wire dimensions, mm (projection to plane perpendicular to B)
-  (wd, wl) = wire_dim(name)
-
-  # Get previous frequency sweep for thermometer and heater:
-  if prev_sweeps:
-    sweep = get_sweep_prev(name, t1, nsweeps=nsweeps, nskip=nskip)
-    sweep = merge_sweeps(sweep, same_drive=0)[0]
   else:
-    sweep = get_sweep_next(name, t2, nsweeps=nsweeps, nskip=nskip)
-    sweep = merge_sweeps(sweep, same_drive=0)[0]
+    # Get data with correct current and voltage
+    data = get_data(name, t1, t2, use_bg=1, cnv_volt=1, cnv_drive=1)
+
+    # Get previous frequency sweep for thermometer and heater:
+    if prev_sweeps:
+      sweep = get_sweep_prev(name, t1, nsweeps=nsweeps, nskip=nskip)
+      sweep = numpy.row_stack(sweep)
+    else:
+      sweep = get_sweep_next(name, t2, nsweeps=nsweeps, nskip=nskip)
+      sweep = numpy.row_stack(sweep)
+
+    # Get field
+    field = graphene.get_prev("demag_pc:f2", t1, usecols=1)[0][0]
+
+    # Get pressure
+    press = graphene.get_prev("cell_press", t1, usecols=1)[0][0]
+
+    if cache != "":
+      numpy.savez(cache, data, sweep, field, press)
+
+  ############################
+
+  # Wire information
+  wire = wire_info_t(name)
+
+  # B-phase corrections if needed
+  if use_bphase: bphase = wire
+  else: bphase = None
 
   # Fit the sweep
   fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, bphase=bphase, press=press, field=field)
 
-  # Scale offset and amplitude to new drive
+
+  # Scale amplitude to new drive, remove offset
   TT = data[:,0]
   FF = data[:,1]
   DD = data[:,4]
+  fit = fit
   C = fit.C * DD
   D = fit.D * DD
   XX = data[:,2] - (fit.A + fit.E*(FF-fit.f0))*DD
   YY = data[:,3] - (fit.B + fit.F*(FF-fit.f0))*DD
+
+  # Return object
+  class ret_t: pass
+  ret = ret_t()
+  ret.TT = TT
+  ret.FF = FF
+  ret.DD = DD
 
   # Resonance frequency and width:
   # coord:     X + i*Y = (C + i*D) / (f0^2-f^2 + i*f*df)
@@ -426,27 +443,30 @@ def get_track(name, t1, t2,
   # find V = f0^2-f^2 + i*f*df:
   VV = (C + 1j*D)/(XX + 1j*YY)
   if not fit.coord: VV *= 1j*FF
-  F0 = numpy.sqrt(numpy.real(VV) + FF**2)
-  dF = numpy.imag(VV)/FF
+  ret.F0 = numpy.sqrt(numpy.real(VV) + FF**2)
+  ret.dF = numpy.imag(VV)/FF
 
   # Project (X,Y) to (C,D) in coord mode, (-D,C) in velocity mode.
+  CD = numpy.hypot(C,D)
   if fit.coord:
-    Vpar = (C*XX + D*YY)/numpy.hypot(C,D)
-    Vperp = (-C*YY + D*XX)/numpy.hypot(C,D)
+    ret.VX = (C*XX + D*YY)/CD
+    ret.VY = (-C*YY + D*XX)/CD
   else:
-    Vpar = (C*YY - D*XX)/numpy.hypot(C,D)
-    Vperp = (C*XX + D*YY)/numpy.hypot(C,D)
-
-  if bphase!=None:
-    dFcorr = bphase.delta0(press, field, dF, volt=numpy.hypot(Vpar, Vperp))
-  else:
-    dFcorr = dF
+    ret.VX = (C*YY - D*XX)/CD
+    ret.VY = (C*XX + D*YY)/CD
 
   # Power
-  PWR = DD*Vperp
+  ret.PWR = DD*ret.VY
 
-  # Velocity
-  vel=numpy.hypot(Vpar, Vperp)/field/(wl*1e-3)
+  # Velocity [cm/s]
+  ret.vel=numpy.hypot(XX,YY)/field/(wire.L*1e-2) * 100
+
+  # Width with B-phase correction
+  if use_bphase:
+    ret.dF0 = bphase.delta0(press, field, ret.dF, vel=ret.vel)
+  else:
+    ret.dF0 = ret.dF
+
 
   # do plot if needed
   if plot!="":
@@ -460,10 +480,20 @@ def get_track(name, t1, t2,
     ff=numpy.linspace(min(sweep[:,1]), max(sweep[:,1]), 100)
     vv1=fit.func(ff, numpy.min(sweep[:,4]))
     vv2=fit.func(ff, numpy.max(sweep[:,4]))
+
+
     a.plot(ff, numpy.real(vv1), 'k-', linewidth=1)
     a.plot(ff, numpy.imag(vv2), 'k-', linewidth=1)
     a.plot(ff, numpy.real(vv1), 'k-', linewidth=1)
     a.plot(ff, numpy.imag(vv2), 'k-', linewidth=1)
+
+    # Lorenztian
+    if use_bphase:
+      vv1=fit_res.fitfunc(fit.par, 0, ff, numpy.min(sweep[:,4]))
+      vv2=fit_res.fitfunc(fit.par, 0, ff, numpy.min(sweep[:,4]))
+      a.plot(ff, numpy.real(vv1), 'k--', linewidth=1)
+      a.plot(ff, numpy.imag(vv2), 'k--', linewidth=1)
+
     a.set_xlabel("freq, Hz")
     a.set_ylabel("volt, Vrms")
     a.set_title("frequency sweep")
@@ -472,12 +502,12 @@ def get_track(name, t1, t2,
     # width and frequency in tracking mode
     a1=ax[0,1]
     a2=a1.twinx()
-    a2.plot(TT-t0, F0, 'b-', label="f0 track")
+    a2.plot(TT-t0, ret.F0, 'b-', label="f0 track")
     a2.plot(TT-t0, FF, 'g-', label="f meas")
 
-    a1.plot(TT-t0, dF, 'r-', label="df track")
-    if bphase!=None:
-      a1.plot(TT-t0, dFcorr, 'm-', label="dF corr")
+    a1.plot(TT-t0, ret.dF, 'r-', label="df track")
+    if use_bphase:
+      a1.plot(TT-t0, ret.dF0, 'm-', label="dF corr")
 
     xx=[0, TT[-1]-t0]
     a1.plot(xx, [fit.df]*2, 'm-', label='df_fit')
@@ -491,8 +521,8 @@ def get_track(name, t1, t2,
 
     # voltage components
     a=ax[1,0]
-    a.plot(TT-t0, Vpar,  'r.-', label="Vpar")
-    a.plot(TT-t0, Vperp, 'b.-', label="Vperp")
+    a.plot(TT-t0, ret.VX, 'r.-', label="Vpar")
+    a.plot(TT-t0, ret.VY, 'b.-', label="Vperp")
     a.set_xlabel("time, s")
     a.set_ylabel("Voltage")
     a.legend()
@@ -500,7 +530,7 @@ def get_track(name, t1, t2,
 
     # power
     a=ax[1,1]
-    a.semilogy(TT-t0, PWR,  'r.-')
+    a.semilogy(TT-t0, ret.PWR,  'r.-')
     a.set_xlabel("time, s")
     a.set_ylabel("Power, W")
     a.set_title("power")
@@ -510,8 +540,7 @@ def get_track(name, t1, t2,
     plt.savefig(plot, dpi=100)
     plt.close()
 
-  if cache != "": numpy.savez(cache, TT, F0, dF, Vpar, Vperp, vel, PWR, field)
-  return (TT, F0, dF, Vpar, Vperp, vel, PWR, field)
+  return ret
 
 ###########################################################
 # Process background sweep.
