@@ -52,16 +52,16 @@ wire_info_tab = {
 # w2d 101.593025*B^2 + 0.436765
 
 ## add B-phase non-linear parameters
-####                                 cm/s          Hz             Hz/T^2
-wire_info_tab['w1a'].update(  {'vmax': 0.14, 'dfi0': 0.292,  'dfi2': 14.82, 'S0': 1, 'S1': 6.7859, 'S2': -3.7249})
-wire_info_tab['w1b'].update(  {'vmax': 0.72, 'dfi0': 0.0507, 'dfi2': 3.182, 'S0': 1, 'S1': 0.4699, 'S2':  0.0151})
-wire_info_tab['w2a'].update(  {'vmax': 0.39, 'dfi0': 0.0810, 'dfi2': 4.853, 'S0': 1, 'S1': 1.0609, 'S2':  0.1434})
-wire_info_tab['w1bt'].update( {'vmax': 0.45, 'dfi0': 0.1664, 'dfi2': 9.220, 'S0': 1, 'S1': 1.2103, 'S2': 0.1638})
-wire_info_tab['w2bt'].update( {'vmax': 0.19, 'dfi0': 0.2492, 'dfi2': 33.29, 'S0': 1, 'S1': 3.4182, 'S2': 0.1825})
-wire_info_tab['w1bh'].update( {'vmax': 0.32, 'dfi0': 0.3314, 'dfi2': 0.000, 'S0': 1, 'S1': 3.2977, 'S2': -0.8180})
-wire_info_tab['w2bh'].update( {'vmax': 0.29, 'dfi0': 0.4377, 'dfi2': 0.000, 'S0': 1, 'S1': 2.2225, 'S2': -0.3893})
-wire_info_tab['w1ta2'].update({'vmax': 0.49, 'dfi0': 0.0000, 'dfi2': 0.000, 'S0': 1, 'S1': 0.4508, 'S2': 0.1005})
-wire_info_tab['w2ta2'].update({'vmax': 0.55, 'dfi0': 0.1966, 'dfi2': 0.000, 'S0': 1, 'S1': 0.5634, 'S2': 0.0383})
+####                                 cm/s          Hz           Hz/T^2
+wire_info_tab['w1a'].update(  {'vmax': 0.14, 'dfi0': 0.3168, 'dfi2': 14.82, 'S0': 1, 'S1': 6.5760, 'S2': -3.5372})
+wire_info_tab['w1b'].update(  {'vmax': 0.72, 'dfi0': 0.0536, 'dfi2': 3.182, 'S0': 1, 'S1': 0.4664, 'S2':  0.0157})
+wire_info_tab['w2a'].update(  {'vmax': 0.39, 'dfi0': 0.0831, 'dfi2': 4.853, 'S0': 1, 'S1': 1.0492, 'S2':  0.1454})
+wire_info_tab['w1bt'].update( {'vmax': 0.45, 'dfi0': 0.1661, 'dfi2': 9.220, 'S0': 1, 'S1': 1.1948, 'S2':  0.1647})
+wire_info_tab['w2bt'].update( {'vmax': 0.19, 'dfi0': 0.2169, 'dfi2': 33.29, 'S0': 1, 'S1': 3.5963, 'S2': -0.0060})
+wire_info_tab['w1bh'].update( {'vmax': 0.32, 'dfi0': 0.3369, 'dfi2': 0.000, 'S0': 1, 'S1': 3.0282, 'S2': -0.7578})
+wire_info_tab['w2bh'].update( {'vmax': 0.29, 'dfi0': 0.4494, 'dfi2': 0.000, 'S0': 1, 'S1': 2.0505, 'S2': -0.3546})
+wire_info_tab['w1ta2'].update({'vmax': 0.49, 'dfi0': 0.0000, 'dfi2': 0.000, 'S0': 1, 'S1': 0.4415, 'S2': 0.1003})
+wire_info_tab['w2ta2'].update({'vmax': 0.55, 'dfi0': 0.1971, 'dfi2': 0.000, 'S0': 1, 'S1': 0.5540, 'S2': 0.0383})
 
 class wire_info_t:
   D = 0    # diameter [cm]
