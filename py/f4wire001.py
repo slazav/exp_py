@@ -441,6 +441,7 @@ def get_track(name, t1, t2,
   ret.DD = DD
   ret.field=field
   ret.press=press
+  ret.fit = fit
 
   # Resonance frequency and width:
   # coord:     X + i*Y = (C + i*D) / (f0^2-f^2 + i*f*df)
