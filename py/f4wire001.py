@@ -105,18 +105,20 @@ class wire_info_t:
     d0  = 2*numpy.polyval(self.pp_d, P)/self.rho/self.D / (2*numpy.pi) #[sgs]
     return -gap/numpy.log(delta0/d0)
 
+  def dfi(self, B):
+    return self.dfi0 + self.dfi2 * B**2
+
   #####################
   # calibration delta(P,B,V,ttc)
   def ttc_to_delta(self, P, B, ttc, vel=None, volt=None):
-    dfi = self.dfi0 + self.dfi2 * B**2
     delta0 = self.ttc_to_delta0(P, ttc)
     S = self.sfunc(P,B, ttc, vel=vel, volt=volt)
-    return dfi + delta0*S
+    return self.dfi(B) + delta0*S
 
   #####################
   # Inversed calibration, ttc(P,B,V,delta)
   def delta_to_ttc(self, P, B, delta, vel=None, volt=None):
-    dfi = self.dfi0 + self.dfi2 * B**2
+    dfi = self.dfi(B)
     gap = numpy.polyval(self.pp_g, P)
     d0 = 2*numpy.polyval(self.pp_d, P)/self.rho/self.D / (2*numpy.pi) #[sgs]
 
@@ -132,8 +134,7 @@ class wire_info_t:
   # Correction, delta0(P,B,V,delta)
   def delta0(self, P, B, delta, vel=None, volt=None):
     ttc = self.delta_to_ttc(P, B, delta, vel=vel, volt=volt)
-    dfi = self.dfi0 + self.dfi2 * B**2
-    return (delta-dfi)/self.sfunc(P,B,ttc,vel=vel,volt=volt)
+    return (delta-self.dfi(B))/self.sfunc(P,B,ttc,vel=vel,volt=volt)
 
   #####################
   def __init__(self, name):
@@ -493,8 +494,10 @@ def get_track(name, t1, t2,
 
     # Lorenztian
     if use_bphase:
-      vv1=fit_res.fitfunc(fit.par, 0, ff, numpy.min(sweep[:,4]))
-      vv2=fit_res.fitfunc(fit.par, 0, ff, numpy.min(sweep[:,4]))
+      par = fit.par.copy()
+      par[5] += wire.dfi(field)
+      vv1=fit_res.fitfunc(par, 0, ff, numpy.min(sweep[:,4]))
+      vv2=fit_res.fitfunc(par, 0, ff, numpy.min(sweep[:,4]))
       a.plot(ff, numpy.real(vv1), 'k--', linewidth=1)
       a.plot(ff, numpy.imag(vv2), 'k--', linewidth=1)
 
