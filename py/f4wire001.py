@@ -376,17 +376,19 @@ def track_heat(data, fit):
 # Process tracking mode data.
 def get_track(name, t1, t2,
      get=0, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1,
-     fit_coord=0, fit_npars=6, use_bphase=0):
+     fit_coord=0, fit_npars=6, use_bphase=0, verb=0):
   import fit_res002 as fit_res
 
 
   ############################
   # get data from DB or cache
   if cache != "" and get==0 and os.path.isfile(cache+".npz"):
+    if verb: print("get_track: load cache: ", cache)
     d = numpy.load(cache+".npz")
     (data, sweep, field, press) = (d["arr_0"], d["arr_1"], d["arr_2"], d["arr_3"])
 
   else:
+    if verb: print("get_track: get data from db")
     # Get data with correct current and voltage
     data = get_data(name, t1, t2, use_bg=1, cnv_volt=1, cnv_drive=1)
 
