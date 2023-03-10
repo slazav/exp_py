@@ -185,6 +185,7 @@ def get_data(name, t1, t2, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
 
   # data: T,F,X,Y,D
   data = graphene.get_range(name + "_sweeps", t1, t2)
+  if data.size ==0: return numpy.array(())
 
   if use_bg:
     bg = graphene.get_prev(name + "_dbox:f2", t1)
@@ -411,6 +412,8 @@ def get_track(name, t1, t2,
       numpy.savez(cache, data, sweep, field, press)
 
   ############################
+
+  if data.size == 0: return None
 
   # Wire information
   wire = wire_info_t(name)
