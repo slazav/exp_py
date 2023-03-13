@@ -106,6 +106,8 @@ def fit(data, coord=0, npars=6, do_fit=1):
   # this is resonance width:
   ii = numpy.hypot(XX-A, YY-B) > numpy.hypot(XX[ires]-A, YY[ires]-B)/math.sqrt(2)
   dF = numpy.max(FF[ii]) - numpy.min(FF[ii])
+  if dF == 0:
+    dF = abs(FF[max(0,ires-1)] - FF[min(ires+1,FF.size-1)])
 
   # amplitudes:
   if coord:
