@@ -26,7 +26,13 @@ def minfunc(par, coord,F,X,Y,D):
 ###############################################################
 # complex function used for fitting -- B-phase non-linear regime
 def fitfuncS(par,bphase, press, field, kv, F,D):
+  if par[2]==0 and par[3]==0:
+    return numpy.zeros_like(F)
+  if par[5]==0:
+    return numpy.zeros_like(F)
+
   V0 = 0
+  E0 = 2
 
   # par[5] is delta0
   ttc = bphase.delta0_to_ttc(press, abs(par[5]))
@@ -34,8 +40,13 @@ def fitfuncS(par,bphase, press, field, kv, F,D):
   while 1:
     delta = bphase.ttc_to_delta(press, field, ttc, volt=abs(V0)*kv)
     V = 1j*F * (par[2] + 1j*par[3])*D/(par[4]**2 - F**2 + 1j*F*delta)
-    if numpy.max(abs(V-V0)/abs(V)) < 1e-6: break
+    V[numpy.isnan(V)] = 0
+    V[numpy.isinf(V)] = 0
+    E = numpy.max(abs(V-V0)/abs(V))
+    if E < 1e-6: break
+    if E > E0: break # avoid infinite growth of V
     V0 = V
+    E0 = E
 
   V += (par[0] + 1j*par[1])*D
   if len(par)==8: V += (par[6] + 1j*par[7])*(F-par[4])*D
@@ -78,8 +89,11 @@ class fit_res_t:
     self.bphase=bphase
     self.press=press
     self.field=field
-    self.amp=numpy.hypot(par[2], par[3])/par[5]
-    if coord: self.amp/=par[4]
+    if par[5]!=0 and par[4]!=0:
+      self.amp=numpy.hypot(par[2], par[3])/par[5]
+      if coord: self.amp/=par[4]
+    else:
+      self.amp=float('nan')
 
   # function
   def func(self, f,d):
