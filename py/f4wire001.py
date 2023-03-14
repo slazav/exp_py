@@ -94,13 +94,13 @@ class wire_info_t:
     return self.S0/(1 + self.S1*vv + self.S2*vv**2)
 
   def ttc_to_delta0(self, P, ttc):
-    if ttc <= 0: return 0
+    #if ttc <= 0: return 0 # TODO: numpy/numbers
     gap = numpy.polyval(self.pp_g, P)
     d0  = 2*numpy.polyval(self.pp_d, P)/self.rho/self.D / (2*numpy.pi) #[sgs]
     return d0 * numpy.exp(-gap/ttc) 
 
   def delta0_to_ttc(self, P, delta0):
-    if delta0 <= 0: return 0
+    #if delta0 <= 0: return 0 # TODO: numpy/numbers
     gap = numpy.polyval(self.pp_g, P)
     d0  = 2*numpy.polyval(self.pp_d, P)/self.rho/self.D / (2*numpy.pi) #[sgs]
     return -gap/numpy.log(delta0/d0)
