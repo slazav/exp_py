@@ -474,8 +474,8 @@ def get_track(name, t1, t2,
   # Width with B-phase correction
   if use_bphase:
     ret.dF0 = bphase.delta0(press, field, ret.dF, vel=ret.vel)
-  else:
-    ret.dF0 = ret.dF
+    ret.ttc = bphase.delta0_to_ttc(press, ret.dF0)
+    ret.wire = bphase
 
 
   # do plot if needed
