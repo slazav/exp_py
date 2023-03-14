@@ -90,9 +90,16 @@ class fit_res_t:
     self.press=press
     self.field=field
     if par[5]!=0 and par[4]!=0:
-      self.amp=numpy.hypot(par[2], par[3])/par[5]
-      if coord: self.amp/=par[4]
+      if coord:
+        self.VX=-par[2]/par[5]/par[4]
+        self.VY=par[3]/par[5]/par[4]
+      else:
+        self.VX=par[3]/par[5]
+        self.VY=-par[2]/par[5]
+      self.amp=numpy.hypot(self.VX,self.VY)
     else:
+      self.VX=float('nan')
+      self.VY=float('nan')
       self.amp=float('nan')
 
   # function
