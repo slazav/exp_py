@@ -149,6 +149,7 @@ class wire_info_t:
     if 'S0'   in w: self.S0   = w['S0']
     if 'S1'   in w: self.S1   = w['S1']
     if 'S2'   in w: self.S2   = w['S2']
+    if 'vmax' in w: self.vmax = w['vmax']
     return
 
 ###########################################################
