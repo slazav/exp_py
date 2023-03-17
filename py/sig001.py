@@ -54,9 +54,11 @@ def read(name):
     data[i,:] *= info["sc"][i]
   return (data, info)
 
-def make_tgrid(info):
+def make_tgrid(info, time_abs = False):
   npt = info["points"]
   dt  = info["dt"]
-  time=numpy.linspace(0,dt*(npt-1),npt)
+  time=numpy.linspace(0,dt*(npt-1),npt) - info["t0"]
+  if time_abs:
+    time += info["t0abs"]
   return time
 
