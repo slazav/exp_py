@@ -431,7 +431,7 @@ def track_heat(data, fit):
 # Process tracking mode data.
 def get_track(name, t1, t2,
      get=0, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1,
-     fit_coord=0, fit_npars=6, use_bphase=0, verb=0):
+     fit_coord=0, fit_npars=6, use_bphase=0, verb=0, osc=""):
   import fit_res002 as fit_res
 
 
@@ -445,7 +445,12 @@ def get_track(name, t1, t2,
   else:
     if verb: print("get_track: get data from db")
     # Get data with correct current and voltage
-    data = get_data(name, t1, t2, use_bg=1, cnv_volt=1, cnv_drive=1)
+    if osc=="":
+      data = get_data(name, t1, t2, use_bg=1, cnv_volt=1, cnv_drive=1)
+    else:
+      data = get_data_osc(name, osc, use_bg=1, cnv_volt=1, cnv_drive=1)
+      t1 = data[0,0]
+      t2 = data[-1,0]
 
     # Get previous frequency sweep for thermometer and heater:
     if prev_sweeps:
