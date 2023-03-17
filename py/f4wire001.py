@@ -237,7 +237,9 @@ def get_data_osc(name, osc, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
   DD = numpy.interp(TT, adc_data[:,0], adc_data[:,4])
 
   # scaling factor between oscilloscope and ADC.
-  K = (numpy.mean(XA/XX) + numpy.mean(YA/YY))/2
+  ix = abs(XX) > numpy.max(abs(XX))/2
+  iy = abs(YY) > numpy.max(abs(YY))/2
+  K = (numpy.mean(XA[ix]/XX[ix]) + numpy.mean(YA[iy]/YY[iy]))/2
   XX *= K
   YY *= K
 
