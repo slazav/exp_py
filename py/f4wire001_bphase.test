@@ -13,7 +13,8 @@ t2="2023-03-05 11:00"
 name="w2a"
 
 # Get tracking mode data for thermometer and heater:
-data = f4wire.get_track(name, t1, t2, use_bphase=1, cache="f4wire001_bphase.cache", plot="f4wire001_bphase.png")
+data = f4wire.get_track(name, t1, t2, use_bphase=1,
+       cache="test_cache/f4wire001_bphase.cache", plot="f4wire001_bphase.png")
 
 
 #####################################

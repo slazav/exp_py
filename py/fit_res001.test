@@ -10,7 +10,7 @@ t2="2023-02-15 15:55"
 name="w1ta2"
 
 # Get 8 sweeps
-sweeps = f4wire.get_sweep_range(name, t1, t2, cache="fit_res001.cache")
+sweeps = f4wire.get_sweep_range(name, t1, t2, cache="test_cache/fit_res001.cache")
 
 # merge all sweeps (drive is same)
 sweeps = f4wire.merge_sweeps(sweeps)

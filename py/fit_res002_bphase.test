@@ -12,7 +12,7 @@ name="w1bt"
 wire = f4wire.wire_info_t(name)
 
 # Get all sweeps
-sweeps = f4wire.get_sweep_range(name, t1, t2, cache="fit_res002_bphase.cache")
+sweeps = f4wire.get_sweep_range(name, t1, t2, cache="test_cache/fit_res002_bphase.cache")
 
 # fit all data
 data = numpy.row_stack(sweeps)

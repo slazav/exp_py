@@ -13,12 +13,12 @@ name_h="w2ta2" # heater
 name_t="w2a"   # thermometer
 
 # Get tracking mode data for thermometer and heater:
-data_h = f4wire.get_data(name_h, t1, t2, cache="f4wire001_hd.cache")
-data_t = f4wire.get_data(name_t, t1, t2, cache="f4wire001_td.cache")
+data_h = f4wire.get_data(name_h, t1, t2, cache="test_cache/f4wire001_hd.cache")
+data_t = f4wire.get_data(name_t, t1, t2, cache="test_cache/f4wire001_td.cache")
 
 # Get previous frequency sweep for thermometer and heater:
-sweep_h = f4wire.get_sweep_prev(name_h, t1, cache="f4wire001_hs.cache")[0]
-sweep_t = f4wire.get_sweep_prev(name_t, t1, cache="f4wire001_ts.cache")[0]
+sweep_h = f4wire.get_sweep_prev(name_h, t1, cache="test_cache/f4wire001_hs.cache")[0]
+sweep_t = f4wire.get_sweep_prev(name_t, t1, cache="test_cache/f4wire001_ts.cache")[0]
 
 # TODO: what if I want a few previous sweeps?
 
