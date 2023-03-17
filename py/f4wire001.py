@@ -211,6 +211,58 @@ def get_data(name, t1, t2, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
   if cache != "": numpy.savetxt(cache, data)
   return data
 
+
+###########################################################
+# Same for oscilloscope data
+def get_data_osc(name, osc, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
+
+  if cache != "" and os.path.isfile(cache):
+    return numpy.loadtxt(cache)
+
+  # load oscilloscope data
+  import sig001 as sig
+  (osc_data, osc_info) = sig.read(osc)
+  TT = sig.make_tgrid(osc_info, time_abs=1)
+  XX = osc_data[0,:]
+  YY = osc_data[1,:]
+  t1 = TT[0]
+  t2 = TT[-1]
+
+  # We need uncorrected ADC data to get drive,
+  # remove background, calculate scaling between oscilloscope and ADC.
+  adc_data = graphene.get_range(name + "_sweeps", t1, t2)
+  FF = numpy.interp(TT, adc_data[:,0], adc_data[:,1])
+  XA = numpy.interp(TT, adc_data[:,0], adc_data[:,2])
+  YA = numpy.interp(TT, adc_data[:,0], adc_data[:,3])
+  DD = numpy.interp(TT, adc_data[:,0], adc_data[:,4])
+
+  # scaling factor between oscilloscope and ADC.
+  K = (numpy.mean(XA/XX) + numpy.mean(YA/YY))/2
+  XX *= K
+  YY *= K
+
+  if use_bg:
+    bg = graphene.get_prev(name + "_dbox:f2", t1)
+    if bg.size>0:
+      XX -= calc_bg(bg[0][1:], FF, 0) * DD
+      YY -= calc_bg(bg[0][1:], FF, 1) * DD
+      #print("bg: ", bg[0])
+
+  if cnv_drive:
+    v2i = graphene.get_prev(name + "_dbox:f1", t1, usecols=1)
+    if v2i.size>0:
+      DD *= v2i[0]
+      #print("v2i: ", v2i[0])
+
+  if cnv_volt:
+    v2v = graphene.get_prev(name + "_meas:f1", t1, usecols=1)
+    if v2v.size>0:
+      XX /= v2v[0]
+      YY /= v2v[0]
+      #print("v2v: ", v2v[0])
+
+  return numpy.column_stack((TT,FF,XX,YY,DD))
+
 ###########################################################
 # Get sweeps using parameters from <name>_pars database
 def get_sweeps_(name, pars, sweep_dir=None, cache="", **kwargs):
