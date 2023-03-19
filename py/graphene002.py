@@ -87,8 +87,8 @@ def graphene_run(cmd, name, t1="0", t2='inf', dt=0):
       text=True)
   data = proc.stdout.read()
   if proc.wait():
-    print('> Graphene error:', data)
-    exit(1)
+    raise Exception('> Graphene error:', data)
+
   return data
 
 ###############################################################

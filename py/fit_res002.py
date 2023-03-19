@@ -62,8 +62,8 @@ def minfuncS(par, bphase, press,field, kv, F,X,Y,D):
 class fit_res_t:
   def __init__(self, time,e,par,err, npars, coord, bphase, press, field):
     if len(par)!=8 or len(err)!=8:
-      print("ERROR: fit_res_t: list of size 8 expected")
-      exit(1)
+      raise Exception("ERROR: fit_res_t: list of size 8 expected")
+
     self.time=time   # Mean time
     self.e=e         # RMS difference between data and model
     self.coord=coord # coord/velocity fit
@@ -118,12 +118,10 @@ class fit_res_t:
 def fit(data, coord=0, npars=6, bphase=None, press=0, field=0, do_fit=1):
 
   if npars!=6 and npars!=8:
-    print("ERROR: npars should be 6 or 8")
-    exit(1)
+    raise Exception("ERROR: npars should be 6 or 8")
 
   if coord!=0 and bphase!=None:
-    print("ERROR: in bphase mode coord parameter should be 0")
-    exit(1)
+    raise Exception("ERROR: in bphase mode coord parameter should be 0")
 
   kv = numpy.max(numpy.hypot(data[:,2], data[:,3]))
   kd = numpy.max(abs(data[:,4]))

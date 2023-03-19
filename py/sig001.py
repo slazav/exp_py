@@ -23,8 +23,7 @@ def read(name):
   while 1:
     line = fo.readline().decode('ascii')
     if not line:
-      print("no data found!")
-      exit(1)
+      raise Exception("no data found!")
 
     line = re.sub(r'#.*$','',line)
     m = re.match(r'^\s+(\S+):\s*(.*)$', line)

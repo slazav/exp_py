@@ -24,8 +24,7 @@ class fit_res_t:
 
   def __init__(self, time,drive,e,par,err, npars, coord):
     if len(par)!=8 or len(err)!=8:
-      print("ERROR: fit_res_t: list of size 8 expected")
-      exit(1)
+      raise Exception("ERROR: fit_res_t: list of size 8 expected")
     self.time=time   # Mean time
     self.drive=drive # Mean drive
     self.e=e         # RMS difference between data and model
@@ -77,8 +76,7 @@ class fit_res_t:
 def fit(data, coord=0, npars=6, do_fit=1):
 
   if npars!=6 and npars!=8:
-    print("ERROR: npars should be 6 or 8")
-    exit(1)
+    raise Exception("ERROR: npars should be 6 or 8")
 
   k = numpy.max(numpy.hypot(data[:,2], data[:,3]))
   FF = data[:,1]
