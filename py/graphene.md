@@ -32,7 +32,7 @@ For very fast access one can copy database file locally and use
 
 #### `graphene_cmd`, `get_range`, `get_wrange`, `get_prev`, `get_next`, `get` -- Get data from graphene.
 
-Usage: `graphene_cmd (cmd, name, t1="0", t2='inf', dt=0, raw=False, usecols=None, unpack=False, cache="")`
+Usage: `graphene_cmd (cmd, name, t1="0", t2='inf', dt=0, raw=False, usecols=None, unpack=False, cache="", verb=1)`
 
 A separate function is available for each command:
 *`get_range(name, t1, t2, **kwargs)`
@@ -55,6 +55,7 @@ Arguments:
 * `unpack` -- Transpore numpy arrays (same as in `numpy.loadtxt`).
 * `cache` -- Filename for using as cache. Data will be saved there and used next time from the file.
 Default value "" means no caching.
+* `verb` -- Verbosity level. 0 - print nothing, >=1 - print "Running command", "Using cache" messages
 
 Return value:
 
@@ -69,7 +70,7 @@ Function used in `graphene_cmd` for loading data.
 
 #### `graphene_run -- run graphene command and get data
 
-Usage: `graphene_run(cmd, name, t1="0", t2='inf', dt=0)`
+Usage: `graphene_run(cmd, name, t1="0", t2='inf', dt=0, verb=1)`
 
 Function used in `graphene_cmd` for running graphene program.
 
