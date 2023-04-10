@@ -24,10 +24,10 @@ wire_info_tab = {
   'w1b':   {'D': 0.315e-4, 'L': 1e-1,    'rho': 6.05}, # unknown length
   'w2b':   {'D': 0.180e-4, 'L': 1e-1,    'rho': 6.05}, # unknown length
   # wires on PCB
-  'w1c':   {'D': 0.390e-4, 'L': 0.5e-1,  'rho': 6.05}, # unknown length
-  'w2c':   {'D': 0.315e-4, 'L': 0.5e-1,  'rho': 6.05}, # unknown length
-  'w1d':   {'D': 0.180e-4, 'L': 0.5e-1,  'rho': 6.05}, # unknown length
-  'w2d':   {'D': 0.180e-4, 'L': 0.5e-1,  'rho': 6.05}, # unknown length
+  'w1c':   {'D': 0.390e-4, 'L': 1.0e-1,  'rho': 6.05}, # unknown length
+  'w2c':   {'D': 0.315e-4, 'L': 1.0e-1,  'rho': 6.05}, # unknown length
+  'w1d':   {'D': 0.180e-4, 'L': 1.0e-1,  'rho': 6.05}, # unknown length
+  'w2d':   {'D': 0.180e-4, 'L': 1.0e-1,  'rho': 6.05}, # unknown length
   # Cell 2020
   'w0ta':  {'D': 127e-4,   'L': 5.0e-1,  'rho': 16.7},  # unknown length
   'w1ta':  {'D': 127e-4,   'L': 4.87e-1, 'rho': 16.7},  # length measured on photo
