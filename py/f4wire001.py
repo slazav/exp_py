@@ -451,8 +451,17 @@ def get_track(name, t1, t2,
       data = get_data(name, t1, t2, use_bg=1, cnv_volt=1, cnv_drive=1)
     else:
       data = get_data_osc(name, osc, use_bg=1, cnv_volt=1, cnv_drive=1)
-      t1 = data[0,0]
-      t2 = data[-1,0]
+
+      # if t1, t2 = None, use full time span of the oscilloscope file
+      # if not, use them as relative values calculated from beginning of the file
+      if not t1: t1 = data[0,0]
+      else:  t1 = data[0,0] + t1
+
+      if not t2: t2 = data[-1,0]
+      else: t2 = data[0,0] + t2
+
+      ii = numpy.logical_and(data[:,0]>=t1, data[:,0]<=t2)
+      data=data[ii,:]
 
     # Get previous frequency sweep for thermometer and heater:
     if prev_sweeps:
