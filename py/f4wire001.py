@@ -433,7 +433,7 @@ def track_heat(data, fit):
 # Process tracking mode data.
 def get_track(name, t1, t2,
      get=0, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1,
-     fit_coord=0, fit_npars=6, use_bphase=0, verb=0, osc=""):
+     fit_coord=0, fit_npars=6, use_bphase=0, bphase=None, verb=0, osc=""):
   import fit_res002 as fit_res
 
 
@@ -488,8 +488,8 @@ def get_track(name, t1, t2,
   wire = wire_info_t(name)
 
   # B-phase corrections if needed
-  if use_bphase: bphase = wire
-  else: bphase = None
+  if not bphase:
+    if use_bphase: bphase = wire
 
   # Fit the sweep
   fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, bphase=bphase, press=press, field=field)
@@ -540,7 +540,7 @@ def get_track(name, t1, t2,
   ret.vel=numpy.hypot(XX,YY)/field/(wire.L*1e-2) * 100
 
   # Width with B-phase correction
-  if use_bphase:
+  if bphase:
     ret.dF0 = bphase.delta0(press, field, ret.dF, vel=ret.vel)
     ret.ttc = bphase.delta0_to_ttc(press, ret.dF0)
     ret.wire = bphase
@@ -566,7 +566,7 @@ def get_track(name, t1, t2,
     a.plot(ff, numpy.imag(vv2), 'k-', linewidth=1)
 
     # Lorenztian
-    if use_bphase:
+    if bphase:
       par = fit.par.copy()
       par[5] += wire.dfi(field)
       vv1=fit_res.fitfunc(par, 0, ff, numpy.min(sweep[:,4]))
@@ -586,7 +586,7 @@ def get_track(name, t1, t2,
     a2.plot(TT-t0, FF, 'g-', label="f meas")
 
     a1.plot(TT-t0, ret.dF, 'r-', label="df track")
-    if use_bphase:
+    if bphase:
       a1.plot(TT-t0, ret.dF0, 'm-', label="dF corr")
 
     xx=[0, TT[-1]-t0]
