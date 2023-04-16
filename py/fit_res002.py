@@ -201,3 +201,38 @@ def fit(data, coord=0, npars=6, bphase=None, press=0, field=0, do_fit=1):
 
   return fit_res_t(time, e, par, err, npars, coord, bphase, press, field)
 
+###############################################################
+# Plot fit.
+# Parameters:
+# - ax,ay   - axis for X and Y (could be same)
+# - sweep   - sweep data
+# - fit_res - fit result
+# - npts    - number of points for fit plot
+# - sh      - y-shift
+# - sc      - y-scale
+
+def plot(ax,ay, sweep, fit, npts=100, sh=0, sc=1, xlabel=None, ylabel=None):
+  import matplotlib.pyplot as plt
+
+  # sweep data
+  ax.plot(sweep[:,1], sh+sc*sweep[:,2], 'r.', label=xlabel)
+  ay.plot(sweep[:,1], sh+sc*sweep[:,3], 'b.', label=ylabel)
+  ff=numpy.linspace(min(sweep[:,1]), max(sweep[:,1]), npts)
+  drive=numpy.mean(sweep[:,4])
+
+  # fit result
+  vv = sh*(1 + 1j) + sc*fit.func(ff, drive)
+  ax.plot(ff, numpy.real(vv), 'k-', linewidth=1)
+  ay.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
+
+  # if B-phase fit is done, plot also linear Lorenztian
+  if fit.bphase:
+    par = fit.par.copy()
+    par[5] += fit.bphase.dfi(fit.field)
+    vv = sh*(1 + 1j) + sc*fitfunc(par, 0, ff, drive)
+    ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
+    ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
+
+  ax.set_xlabel("freq, Hz")
+  if ax!=ay:
+    ay.set_xlabel("freq, Hz")

@@ -23,26 +23,10 @@ fit = fit_res.fit(data, bphase=wire, field=79.5e-3, press=0, npars=6, do_fit=1)
 n=0
 for s in sweeps:
   n+=1
-
   drive = numpy.mean(s[:,4])
-  ff = s[:,1]
-  xx = s[:,2]/drive
-  yy = s[:,3]/drive
+  fit_res.plot(ax[0], ax[1], s, fit, sc=1/drive, sh=5*n, npts=200)
 
-  ffc=numpy.linspace(ff[0], ff[-1], 400)
-  xyc=fit.func(ffc, drive)
-  xxc=numpy.real(xyc)/drive
-  yyc=numpy.imag(xyc)/drive
 
-  sh = 5*n
-  ax[0].plot(ff, sh + xx, '.-', label="%.2e"%(drive))
-  ax[1].plot(ff, sh + yy, '.-')
-
-  ax[0].plot(ffc, sh + xxc, 'k-')
-  ax[1].plot(ffc, sh + yyc, 'k-')
-
-ax[0].set_xlabel('freq [Hz]')
-ax[1].set_xlabel('freq [Hz]')
 ax[0].set_ylabel('Vx/I [V/A]')
 ax[1].set_ylabel('Vy/I [V/A]')
 plt.gcf().set_size_inches(12, 6)
