@@ -64,17 +64,6 @@ wire_info_tab['w1ta2'].update({'vmax': 0.49, 'dfi0': 0.0000, 'dfi2': 0.000, 'S0'
 wire_info_tab['w2ta2'].update({'vmax': 0.55, 'dfi0': 0.1971, 'dfi2': 0.000, 'S0': 1, 'S1': 0.5540, 'S2': 0.0383})
 
 class wire_info_t:
-  D = 0    # diameter [cm]
-  L = 0    # length (projection to plane perpendicular to B) [cm]
-  rho = 0  # material density [g/cm^3].
-
-  # B-phase non-linear parameters:
-  vmax = 0 # max velocity for the non-linear model [cm/s]
-  dfi0 = 0 # intrinsic width at zero field [Hz]
-  dfi2 = 0 # field-dependent part of intrinsic width [Hz/T^2]
-  S0 = 1   # S-function parameters
-  S1 = 0   #
-  S2 = 0   #
 
   # 4-th power polyfit of  pF^2 * vF * 2N(0)/2 [sgs] vs P [bar]
   pp_d = (-1.6016e-03, 1.2582e-01, -3.9976e+00, 8.8950e+01, 2.0300e+03)
@@ -149,6 +138,7 @@ class wire_info_t:
     if name not in wire_info_tab:
       raise Exception("'ERROR: f4wire: unknown name: ' + name")
     w = wire_info_tab[name]
+    self.remove_nonlin() # set non-lin defaults
     if 'D'   in w: self.D   = w['D']
     if 'L'   in w: self.L   = w['L']
     if 'rho' in w: self.rho = w['rho']
