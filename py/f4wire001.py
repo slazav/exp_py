@@ -136,6 +136,14 @@ class wire_info_t:
     ttc = self.delta_to_ttc(P, B, delta, vel=vel, volt=volt)
     return (delta-self.dfi(B))/self.sfunc(P,B,ttc,vel=vel,volt=volt)
 
+  def remove_nonlin(self):
+    self.dfi0 = 0
+    self.dfi2 = 0
+    self.S0   = 1
+    self.S1   = 0
+    self.S2   = 0
+    self.vmax = 0
+
   #####################
   def __init__(self, name):
     if name not in wire_info_tab:
