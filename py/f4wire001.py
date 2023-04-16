@@ -551,28 +551,7 @@ def get_track(name, t1, t2,
 
     # sweep
     a=ax[0,0]
-    a.plot(sweep[:,1], sweep[:,2], 'r.', label="X")
-    a.plot(sweep[:,1], sweep[:,3], 'b.', label="Y")
-    ff=numpy.linspace(min(sweep[:,1]), max(sweep[:,1]), 100)
-    vv1=fit.func(ff, numpy.min(sweep[:,4]))
-    vv2=fit.func(ff, numpy.max(sweep[:,4]))
-
-
-    a.plot(ff, numpy.real(vv1), 'k-', linewidth=1)
-    a.plot(ff, numpy.imag(vv2), 'k-', linewidth=1)
-    a.plot(ff, numpy.real(vv1), 'k-', linewidth=1)
-    a.plot(ff, numpy.imag(vv2), 'k-', linewidth=1)
-
-    # Lorenztian
-    if bphase:
-      par = fit.par.copy()
-      par[5] += wire.dfi(field)
-      vv1=fit_res.fitfunc(par, 0, ff, numpy.min(sweep[:,4]))
-      vv2=fit_res.fitfunc(par, 0, ff, numpy.min(sweep[:,4]))
-      a.plot(ff, numpy.real(vv1), 'k--', linewidth=1)
-      a.plot(ff, numpy.imag(vv2), 'k--', linewidth=1)
-
-    a.set_xlabel("freq, Hz")
+    fit_res.plot(a, a, sweep, fit, npts=200, xlabel="X", ylabel="Y")
     a.set_ylabel("volt, Vrms")
     a.set_title("frequency sweep")
 
