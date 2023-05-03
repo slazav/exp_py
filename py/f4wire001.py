@@ -535,8 +535,10 @@ def get_track(name, t1, t2,
   # Power
   ret.PWR = DD*ret.VY
 
-  # Velocity [cm/s]
-  ret.vel=numpy.hypot(XX,YY)/field/(wire.L*1e-2) * 100
+  # Voltage and Velocity [cm/s]
+  ret.volt = numpy.hypot(XX,YY)
+  ret.volt2vel = 1/field/(wire.L*1e-2) * 100
+  ret.vel = ret.volt*ret.volt2vel
 
   # Width with B-phase correction
   if bphase:
