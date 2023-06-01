@@ -93,7 +93,7 @@ Arguments:
 Return values:
 * `time`
 * `f0`, `df` -- Resonance frequency and width.
-* `vpar`, `vperp` -- Components of voltage projected to direction of driving force.
+* `VX`, `VY` -- Components of voltage projected to direction of driving force.
 * `vel` -- Velocity amplitude (m/s). Field from `demag_pc:f2` database is used.
 * `pwd` -- Dissipated power (drive * vpar).
 
