@@ -77,7 +77,7 @@ Return value: dissipated power `pwr` -- numpy array, same length as `data[:,0]`
 #### `get_track` -- high-level function for processing tracking mode data.
 
 Usage: `(time, f0, df, Vpar, Vperp, vel, PWR) =
- get_track(name, t1, t2, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1, fit_coord=0, fit_npars=6)`
+ get_track(name, t1, t2, get=0, cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1, fit_coord=0, fit_npars=6, use_bphase=0, bphase=None, verb=0, osc="")`
 
 Arguments:
 * `name` -- wire name
@@ -89,13 +89,26 @@ Arguments:
    skip `nskip` sweeps and merge next `nsweeps` (with amplitude rescaled to drive).
 * `fit_coord` -- use coordinate fit instead of velocity fit
 * `fit_npars` -- number of parameters for Lorenzian fit
+* `use_bphase` -- flag for B-phase corrections
+* `bphase`
+* `verb` - verbosity flag
+* `osc` -- scope binary file
 
 Return values:
-* `time`
-* `f0`, `df` -- Resonance frequency and width.
-* `VX`, `VY` -- Components of voltage projected to direction of driving force.
-* `vel` -- Velocity amplitude (m/s). Field from `demag_pc:f2` database is used.
-* `pwd` -- Dissipated power (drive * vpar).
+* `TT` -- Unix time [s]
+* `F0`, `dF` -- aesonance frequency and width [Hz].
+* `dF0` -- corrected resonance width [Hz]
+* `FF` -- array of sweep frequencies [Hz]
+* `DD` -- drive current [A]
+* `sweep` -- sweep points
+* `fit` -- sweep fit results
+* `VX`, `VY` -- components of voltage projected to direction of driving force [V].
+* `vel` -- velocity amplitude [m/s]. Field from `demag_pc:f2` database is used.
+* `PWR` -- dissipated power (drive * vpar) [W].
+* `ttc` -- T/T_c
+* `wire` -- name of the wire
+* `press` -- pressure [bar]
+* `field` -- magnetic field [T]
 
 def get_track(name, t1, t2,
      cache="", plot="", nsweeps=1, nskip=0, prev_sweeps=1, fit_coord=0, fit_npars=6):
