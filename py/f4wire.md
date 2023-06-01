@@ -83,20 +83,22 @@ Arguments:
 * `name` -- wire name
 * `t1`, `t2` -- timestamps
 * `cache` -- prefix for cache file (will be saved in .npz format)
-* `get`   -- always get tada from database even if cache file exists (it will be updated)
+* `get`   -- always get data from database even if cache file exists (it will be updated)
 * `plot`  -- prefix for plot (.png)
 * `nsweeps`, `nskip`, `prev_sweeps` -- Use sweeps before (`prev_sweeps=1`) or after the data range.
    skip `nskip` sweeps and merge next `nsweeps` (with amplitude rescaled to drive).
 * `fit_coord` -- use coordinate fit instead of velocity fit
 * `fit_npars` -- number of parameters for Lorenzian fit
-* `use_bphase` -- flag for B-phase corrections
-* `bphase`
+* `use_bphase` -- Flag for B-phase corrections. Correction parameters are
+   taken from wire_info_t class for the given wire name.
+   Corrections are used for fitting initial sweep and for calculating corrected resonance width `dF0`.
+* `bphase` -- explicetely set bphase correction parameters (if there is a need to use non-standard ones)
 * `verb` - verbosity flag
 * `osc` -- scope binary file
 
 Return values:
 * `TT` -- Unix time [s]
-* `F0`, `dF` -- aesonance frequency and width [Hz].
+* `F0`, `dF` -- resonance frequency and width [Hz]
 * `dF0` -- corrected resonance width [Hz]
 * `FF` -- array of sweep frequencies [Hz]
 * `DD` -- drive current [A]
