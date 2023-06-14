@@ -9,9 +9,9 @@ import scipy.optimize
 # - Non-linear function for low-temperature B-phase
 #
 # Changes between fit_res002 and fit_res003:
-# - Use arbitrary "S-function" instead of B-phase corrections.
+# - Use arbitrary "D-function" (delta(delta0, |vel|)) instead
+#   of B-phase corrections.
 #   No knowledge about field, pressure, wire parameters.
-
 
 ###############################################################
 # Complex Lorentzian function used for fitting
@@ -31,7 +31,7 @@ def minfunc(par, coord,F,X,Y,D):
 ###############################################################
 # Complex function used for fitting
 # Loerentzian with S-function
-def fitfuncS(par, sfunc, kv, F,D):
+def fitfuncD(par, dfunc, kv, F,D):
   if par[2]==0 and par[3]==0:
     return numpy.zeros_like(F)
   if par[5]==0:
@@ -39,7 +39,7 @@ def fitfuncS(par, sfunc, kv, F,D):
   V0 = 0
   E0 = 2
   while 1:
-    delta = par[5]*sfunc(abs(V0)*kv)
+    delta = dfunc(par[5], abs(V0)*kv)
     V = 1j*F * (par[2] + 1j*par[3])*D/(par[4]**2 - F**2 + 1j*F*delta)
     V[numpy.isnan(V)] = 0
     V[numpy.isinf(V)] = 0
@@ -54,19 +54,19 @@ def fitfuncS(par, sfunc, kv, F,D):
   return V
 
 # function for minimization
-def minfuncS(par, sfunc, kv, F,X,Y,D):
-  V = fitfuncS(par, sfunc, kv, F,D)
+def minfuncD(par, dfunc, kv, F,X,Y,D):
+  V = fitfuncD(par, dfunc, kv, F,D)
   return numpy.linalg.norm(X + 1j*Y - V)/numpy.linalg.norm(X + 1j*Y)
 
 
 ###############################################################
 class fit_res_t:
-  def __init__(self, time,e,par,err, npars, coord, sfunc):
+  def __init__(self, time,e,par,err, npars, coord, dfunc):
     if len(par)!=8 or len(err)!=8:
       raise Exception("ERROR: fit_res_t: list of size 8 expected")
 
-    if coord!=0 and sfunc!=None:
-      raise Exception("ERROR: in sfunc mode coord parameter should be 0")
+    if coord!=0 and dfunc!=None:
+      raise Exception("ERROR: in dfunc mode coord parameter should be 0")
 
     self.time=time   # Mean time
     self.e=e         # RMS difference between data and model
@@ -90,7 +90,7 @@ class fit_res_t:
     self.df_e=err[5]
     self.E_e=err[6]
     self.F_e=err[7]
-    self.sfunc=sfunc
+    self.dfunc=dfunc
     if par[5]!=0 and par[4]!=0:
       if coord:
         self.VX=-par[2]/par[5]/par[4]
@@ -106,8 +106,8 @@ class fit_res_t:
 
   # function
   def func(self, f,d):
-    if self.sfunc!=None:
-      return fitfuncS(self.par, self.sfunc, 1, f,d)
+    if self.dfunc!=None:
+      return fitfuncD(self.par, self.dfunc, 1, f,d)
     else:
       return fitfunc(self.par, self.coord, f,d)
 
@@ -117,13 +117,13 @@ class fit_res_t:
 # data is Nx5 numpy array with usual columns:
 #   T-F-X-Y-D
 
-def fit(data, coord=0, npars=6, sfunc=None, do_fit=1):
+def fit(data, coord=0, npars=6, dfunc=None, do_fit=1):
 
   if npars!=6 and npars!=8:
     raise Exception("ERROR: npars should be 6 or 8")
 
-  if coord!=0 and sfunc!=None:
-    raise Exception("ERROR: in sfunc mode coord parameter should be 0")
+  if coord!=0 and dfunc!=None:
+    raise Exception("ERROR: in dfunc mode coord parameter should be 0")
 
   kv = numpy.max(numpy.hypot(data[:,2], data[:,3]))
   kd = numpy.max(abs(data[:,4]))
@@ -179,8 +179,8 @@ def fit(data, coord=0, npars=6, sfunc=None, do_fit=1):
     err.extend((0,0))
 
   if do_fit:
-    if sfunc!=None:
-      res = scipy.optimize.minimize(minfuncS, par, (sfunc, kv, FF,XX,YY,DD),
+    if dfunc!=None:
+      res = scipy.optimize.minimize(minfuncD, par, (dfunc, kv, FF,XX,YY,DD),
         options={'disp': False, 'maxiter': 1000})
     else:
       res = scipy.optimize.minimize(minfunc, par, (coord, FF,XX,YY,DD),
@@ -201,7 +201,7 @@ def fit(data, coord=0, npars=6, sfunc=None, do_fit=1):
     par[i]*=kv/kd
     err[i]*=kv/kd
 
-  return fit_res_t(time, e, par, err, npars, coord, sfunc)
+  return fit_res_t(time, e, par, err, npars, coord, dfunc)
 
 ###############################################################
 # Plot fit.
@@ -228,7 +228,7 @@ def plot(ax,ay, sweep, fit, npts=100, sh=0, sc=1, xlabel=None, ylabel=None):
   ay.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
 
   # if S-function fit is done, plot also linear Lorenztian
-  if fit.sfunc:
+  if fit.dfunc:
     vv = sh*(1 + 1j) + sc*fitfunc(fit.par, 0, ff, drive)
     ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
     ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
