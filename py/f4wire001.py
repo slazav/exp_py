@@ -308,7 +308,7 @@ def get_sweeps_(name, pars, sweep_dir=None, cache="", **kwargs):
     ff=open(cache, "w")
     for s in sweeps:
       for i in range(s.shape[0]):
-        print("%.6f %e %e %e %e"%(*s[i,:],), file=ff)
+        print("%.6f %.6f %e %e %e"%(*s[i,:],), file=ff)
       print("", file=ff)
 
   return sweeps
