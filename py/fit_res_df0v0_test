@@ -24,7 +24,19 @@ n=0
 for s in sweeps:
   n+=1
   drive = numpy.mean(s[:,4])
-  fit_res.plot(ax[0], ax[1], s, fit, sc=1/drive, sh=5*n, npts=200)
+  sh=5*n
+  sc=1/drive
+  npts=200
+  fit_res.plot(ax[0], ax[1], s, fit, sc=sc, sh=sh, npts=npts)
+
+  #individual fits (green curve)
+  fit1 = fit_res.fit(s, npars=7, do_fit=1)
+  ff=numpy.linspace(min(s[:,1]), max(s[:,1]), npts)
+  vv = sh*(1 + 1j) + sc*fit1.func(ff, drive)
+  ax[0].plot(ff, numpy.real(vv), 'g-', linewidth=1)
+  ax[1].plot(ff, numpy.imag(vv), 'g-', linewidth=1)
+#  print(fit1.par)
+
 
 
 ax[0].set_ylabel('Vx/I [V/A]')
