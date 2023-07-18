@@ -320,11 +320,11 @@ def get_sweep_prev(name, t1, nsweeps=1, nskip=0, **kwargs):
   pars = []
   for i in range(nskip):
     p = graphene.get_prev(name + '_pars', t1)[0]
-    t1 = p[0][0]-1e-6
+    t1 = p[0]-1e-6
   for i in range(nsweeps):
     p = graphene.get_prev(name + '_pars', t1)[0]
     pars.append(p)
-    t1 = p[0][0]-1e-6
+    t1 = p[0]-1e-6
   return get_sweeps_(name, numpy.array(pars), **kwargs)
 
 def get_sweep_next(name, t1, nsweeps=1, nskip=0, **kwargs):
