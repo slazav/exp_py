@@ -63,6 +63,7 @@ class fit_res_t:
     self.time=time   # Mean time
     self.e=e         # RMS difference between data and model
     self.npars=npars # 7/9 pars
+    self.coord=0     #
     self.par=par     # parameters (9 members)
     self.err=err     # parameter uncertainties (9 members)
     self.A=par[0]
@@ -95,6 +96,10 @@ class fit_res_t:
   # function
   def func(self, f,d):
     return fitfunc(self.par, f,d)
+
+  def dfunc(self, df0, v):
+    VV=v/self.v0
+    return df0/(1 + A0*VV + B0*VV**2 + C0*VV**3)
 
 ###############################################################
 # Fit frequency sweeps.
