@@ -10,9 +10,8 @@ import scipy.optimize
 # V.Zavjalov, 15.06.2023
 
 # Fit of theoretical S function
-A0=0.439023879201735
-B0=0.045824276758537
-C0=-0.00192214696297599
+A0=0.486387040089067
+B0=1.14243469051564
 
 ###############################################################
 # Complex function used for fitting
@@ -33,7 +32,7 @@ def fitfunc(par, F,D):
   E0 = 2
   while 1:
     VV=abs(Vx)/V0
-    dF = dF0/(1 + A0*VV + B0*VV**2 + C0*VV**3)
+    dF = dF0/(1 + A0*abs(VV)**B0)
 
     V = 1j*F * CD*D/(F0**2-F**2 + 1j*F*dF)
     V[numpy.isnan(V)] = 0
