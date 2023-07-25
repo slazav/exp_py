@@ -98,7 +98,7 @@ class fit_res_t:
 
   def dfunc(self, df0, v):
     VV=v/self.v0
-    return df0/(1 + A0*VV + B0*VV**2 + C0*VV**3)
+    return df0/(1 + A0*abs(VV)**B0)
 
 ###############################################################
 # Fit frequency sweeps.
