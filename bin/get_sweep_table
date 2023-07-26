@@ -1,0 +1,64 @@
+#!/usr/bin/python3
+
+# get table with sweep/tracking/unknown
+
+import os
+import numpy
+
+import sys
+sys.path.insert(1, '../../scripts/py')
+import graphene002 as graphene
+graphene.set_source(('graphene','-d','/home/sla/DB_COPY', '-R'))
+#graphene.set_source('local')
+
+
+##################################################################
+# function for walking through all sweeps and tracking mode periods
+# for wire <name> bewtween <t1> and <t2>
+def get_tab(name, t1, t2):
+
+  global nsweep
+  nsweep = 0
+  t1 = float(graphene.timeconv(t1))
+  t2 = float(graphene.timeconv(t2))
+
+  time = t1
+  # get sweeps before <time> (if any)
+  sp = graphene.get_prev(name + '_pars', time, usecols=(0,1))
+  if sp.size>0:sp=sp[0]
+
+  while time < t2:
+    sn = graphene.get_next(name + '_pars', time, usecols=(0,1))
+    if sn.size>0:sn=sn[0]
+    if sn.size<2: break
+
+    # process possible tracking data
+    # for this we need previous sweep
+    if sp.size>1:
+      tt1 = sp[0] + sp[1] + 0.001
+      tt2 = t2
+      if sn.size>1: tt2 = sn[0] - 0.001
+
+      data=graphene.get_range(name + '_sweeps', tt1, tt2, raw=1)
+      if len(data)>0: print('tracking %.3f %.3f'%(tt1, tt2))
+
+    else:
+      tt1=time
+      tt2=sn[0] - 0.001
+      data=graphene.get_range(name + '_sweeps', tt1, tt2, raw=1)
+      if len(data)>0: print('unknown  %.3f %.3f'%(tt1, tt2))
+
+    # process new sweep, move to new time value
+    nsweep+=1
+    print('fsweep   %.3f %.3f'%(sn[0] - 0.001, sn[0] + sn[1] + 0.001))
+
+    time = sn[0] + sn[1] + 0.001
+    sp = sn
+
+
+##################################################################
+
+if len(sys.argv)!=4:
+  raise Exception("Usage: get_sweep_table <wire name> <t1> <t2>")
+
+get_tab(*sys.argv[1:4])
