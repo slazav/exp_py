@@ -17,7 +17,6 @@ graphene.set_source(('graphene','-d','/home/sla/DB_COPY', '-R'))
 # for wire <name> bewtween <t1> and <t2>
 def get_tab(name, t1, t2):
 
-  global nsweep
   nsweep = 0
   t1 = float(graphene.timeconv(t1))
   t2 = float(graphene.timeconv(t2))
@@ -40,17 +39,21 @@ def get_tab(name, t1, t2):
       if sn.size>1: tt2 = sn[0] - 0.001
 
       data=graphene.get_range(name + '_sweeps', tt1, tt2, raw=1)
-      if len(data)>0: print('tracking %.3f %.3f'%(tt1, tt2))
+      if len(data)>0:
+        nsweep+=1
+        print('tracking %5d %.3f %.3f'%(nsweep, tt1, tt2))
 
     else:
       tt1=time
       tt2=sn[0] - 0.001
       data=graphene.get_range(name + '_sweeps', tt1, tt2, raw=1)
-      if len(data)>0: print('unknown  %.3f %.3f'%(tt1, tt2))
+      if len(data)>0:
+        nsweep+=1
+        print('unknown  %5d %.3f %.3f'%(nsweep, tt1, tt2))
 
     # process new sweep, move to new time value
     nsweep+=1
-    print('fsweep   %.3f %.3f'%(sn[0] - 0.001, sn[0] + sn[1] + 0.001))
+    print('fsweep   %5d %.3f %.3f'%(nsweep, sn[0] - 0.001, sn[0] + sn[1] + 0.001))
 
     time = sn[0] + sn[1] + 0.001
     sp = sn
