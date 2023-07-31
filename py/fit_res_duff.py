@@ -199,10 +199,16 @@ def plot(ax,ay, sweep, fit, npts=100, sh=0, sc=1, xlabel=None, ylabel=None):
   ax.plot(ff, numpy.real(vv), 'k-', linewidth=1)
   ay.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
 
+
   # plot also linear Lorentzian
   par1=fit.par.copy()
   par1[6]=float('inf')
   vv = sh*(1 + 1j) + sc*fitfunc(par1, ff, drive)
+  ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
+  ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
+
+  # plot background
+  vv = sh*(1 + 1j) + sc*drive*(par1[0]+1j*par1[1] + (par1[7]+1j*par1[8])*(ff-par1[4]))
   ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
   ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
 
