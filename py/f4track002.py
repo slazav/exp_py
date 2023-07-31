@@ -11,6 +11,8 @@ import os
 import graphene002 as graphene
 import f4wire001 as f4wire
 import fit_res003 as fit_res
+import fit_res_df0v0
+import fit_res_duff
 
 
 def get_track(name, t1, t2,
@@ -68,7 +70,12 @@ def get_track(name, t1, t2,
   wire = f4wire.wire_info_t(name)
 
   # Fit the sweep
-  fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, dfunc=dfunc)
+  if dfunc=="duff":
+    fit = fit_res_duff.fit(sweep, npars=fit_npars+1)
+  elif dfunc=="fit":
+    fit = fit_res_df0v0.fit(sweep, npars=fit_npars+1)
+  else:
+    fit = fit_res.fit(sweep, coord=fit_coord, npars=fit_npars, dfunc=dfunc)
 
   # Scale amplitude to new drive, remove offset
   TT = data[:,0]
@@ -136,7 +143,7 @@ def get_track(name, t1, t2,
     a2.plot(TT-t0, FF, 'g-', label="f meas")
 
     a1.plot(TT-t0, ret.dF, 'r-', label="df track")
-    if bphase:
+    if dfunc:
       a1.plot(TT-t0, ret.dF0, 'm-', label="dF corr")
 
     xx=[0, TT[-1]-t0]
