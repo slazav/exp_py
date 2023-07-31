@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+
+import numpy
+import matplotlib.pyplot as plt
+import fit_res_duff as fit_res
+import f4wire001 as f4wire
+
+t1='1685438236'
+t2='1685439265'
+name="w2ta2"
+
+# Get all sweeps
+sweep = f4wire.get_data(name, t1, t2, cache="test_cache/fit_res_duff.cache")
+
+# fit all data
+fit = fit_res.fit(sweep, npars=7, do_fit=1)
+
+#fit.par[6] *= 0.2
+
+# plot data
+(fig, ax) = plt.subplots(1,2)
+drive = numpy.mean(sweep[:,4])
+sc=1/drive
+npts=200
+fit_res.plot(ax[0], ax[1], sweep, fit, sc=sc, npts=npts)
+
+ax[0].set_ylabel('Vx/I [V/A]')
+ax[1].set_ylabel('Vy/I [V/A]')
+plt.gcf().set_size_inches(12, 6)
+plt.savefig("fit_res_duff.png", dpi=100)
