@@ -1,6 +1,7 @@
 import numpy
 import math
 import scipy.optimize
+import fit_res_common
 
 # Version of fit_res for Duffing oscillator with additional parameter V0.
 #   V.Zavjalov, 31.07.2023
@@ -40,7 +41,6 @@ def fitfunc(par, F,D):
 def minfunc(par, F,X,Y,D):
   V = fitfunc(par, F,D)
   return numpy.linalg.norm(X + 1j*Y - V)/numpy.linalg.norm(X + 1j*Y)
-
 
 ###############################################################
 class fit_res_t:
@@ -108,41 +108,8 @@ def fit(data, npars=7, do_fit=1):
   YY = data[:,3]/kv
   DD = data[:,4]/kd
 
-  ##########################
-  # Initial conditions.
-  # points with min/max freq
-  ifmin = numpy.argmin(FF)
-  ifmax = numpy.argmax(FF)
-
-  XS = XX/DD
-  YS = YY/DD
-  # A,B - in the middle between these points:
-  A = (XS[ifmin] + XS[ifmax])/2
-  B = (YS[ifmin] + YS[ifmax])/2
-
-  # furthest point from (A,B),
-  # it should be near resonance:
-  ires = numpy.argmax(numpy.hypot(XS-A, YS-B))
-  F0 = FF[ires]
-
-  # min/max freq where distance > dmax/sqrt(2),
-  # this is resonance width:
-  ii = numpy.hypot(XS-A, YS-B) > numpy.hypot(XS[ires]-A, YS[ires]-B)/math.sqrt(2)
-  dF = numpy.max(FF[ii]) - numpy.min(FF[ii])
-  if dF == 0:
-    dF = abs(FF[max(0,ires-1)] - FF[min(ires+1,FF.size-1)])
-
-  # amplitudes:
-  C = dF*(XS[ires]-A);
-  D = dF*(YS[ires]-B);
-  V0 = numpy.hypot(XS[ires]-A, YS[ires]-B)
-
-  # E,F - slope of the line connecting first and line points
-  E = (XS[-1] - XS[0])/(FF[-1] - FF[0]);
-  F = (YS[-1] - YS[0])/(FF[-1] - FF[0]);
-
-  ##########################
-
+  (A,B,C,D,F0,dF,E,F) = fit_res_common.init_pars(FF, XX/DD, YY/DD, 0)
+  V0 = numpy.hypot(C,D)/dF
   par = [A,B,C,D,F0,dF,V0]
   err = [0,0,0,0,0,0,0]
   e   = 0

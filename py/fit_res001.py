@@ -1,6 +1,7 @@
 import numpy
 import math
 import scipy.optimize
+import fit_res_common
 
 ###############################################################
 # complex function used for fitting
@@ -85,42 +86,7 @@ def fit(data, coord=0, npars=6, do_fit=1):
   time  = numpy.mean(data[:,0])
   drive = numpy.mean(data[:,4])
 
-  ##########################
-  # Initial conditions.
-  # points with min/max freq
-  ifmin = numpy.argmin(FF)
-  ifmax = numpy.argmax(FF)
-
-  # A,B - in the middle between these points:
-  A = (XX[ifmin] + XX[ifmax])/2
-  B = (YY[ifmin] + YY[ifmax])/2
-
-  # furthest point from (A,B),
-  # it should be near resonance:
-  ires = numpy.argmax(numpy.hypot(XX-A, YY-B))
-  F0 = FF[ires]
-
-  # min/max freq where distance > dmax/sqrt(2),
-  # this is resonance width:
-  ii = numpy.hypot(XX-A, YY-B) > numpy.hypot(XX[ires]-A, YY[ires]-B)/math.sqrt(2)
-  dF = numpy.max(FF[ii]) - numpy.min(FF[ii])
-  if dF == 0:
-    dF = abs(FF[max(0,ires-1)] - FF[min(ires+1,FF.size-1)])
-
-  # amplitudes:
-  if coord:
-    C = -F0*dF*(YY[ires]-B);
-    D =  F0*dF*(XX[ires]-A);
-  else:
-    C = dF*(XX[ires]-A);
-    D = dF*(YY[ires]-B);
-
-  # E,F - slope of the line connecting first and line points
-  E = (XX[-1] - XX[0])/(FF[-1] - FF[0]);
-  F = (YY[-1] - YY[0])/(FF[-1] - FF[0]);
-
-  ##########################
-
+  (A,B,C,D,F0,dF,E,F) = fit_res_common.init_pars(FF,XX,YY,coord)
   par = [A,B,C,D,F0,dF]
   err = [0,0,0,0,0,0]
   e   = 0
