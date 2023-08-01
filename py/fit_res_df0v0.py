@@ -96,6 +96,10 @@ class fit_res_t:
   def func(self, f,d):
     return fitfunc(self.par, f,d)
 
+  def func_lin(self, f,d):
+    return fit_res_common.fitfunc_lor(
+      numpy.take(self.par, (0,1,2,3,4,5,7,8)), self.coord, f,d)
+
   def dfunc(self, df0, v):
     VV=v/self.v0
     return df0/(1 + A0*abs(VV)**B0)
@@ -156,40 +160,6 @@ def fit(data, npars=7, do_fit=1):
 
 ###############################################################
 # Plot fit.
-# Parameters:
-# - ax,ay   - axis for X and Y (could be same)
-# - sweep   - sweep data
-# - fit_res - fit result
-# - npts    - number of points for fit plot
-# - sh      - y-shift
-# - sc      - y-scale
 
-def plot(ax,ay, sweep, fit, npts=100, sh=0, sc=1, xlabel=None, ylabel=None):
-  import matplotlib.pyplot as plt
-
-  # sweep data
-  ax.plot(sweep[:,1], sh+sc*sweep[:,2], 'r.', label=xlabel)
-  ay.plot(sweep[:,1], sh+sc*sweep[:,3], 'b.', label=ylabel)
-  ff=numpy.linspace(min(sweep[:,1]), max(sweep[:,1]), npts)
-  drive=numpy.mean(sweep[:,4])
-
-  # fit result
-  vv = sh*(1 + 1j) + sc*fit.func(ff, drive)
-  ax.plot(ff, numpy.real(vv), 'k-', linewidth=1)
-  ay.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
-
-  # plot also linear Lorentzian
-  par1=fit.par.copy()
-  par1[6]=float('inf')
-  vv = sh*(1 + 1j) + sc*fitfunc(par1, ff, drive)
-  ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
-  ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
-
-  # plot background
-  vv = sh*(1 + 1j) + sc*drive*(par1[0]+1j*par1[1] + (par1[7]+1j*par1[8])*(ff-par1[4]))
-  ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
-  ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
-
-  ax.set_xlabel("freq, Hz")
-  if ax!=ay:
-    ay.set_xlabel("freq, Hz")
+def plot(ax,ay, sweep, fit, **kargs):
+  fit_res_common.plot(ax,ay, sweep, fit, **kargs)

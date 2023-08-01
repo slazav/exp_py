@@ -39,6 +39,10 @@ class fit_res_t:
   def func(self, f):
     return fit_res_common.fitfunc_lor(self.par, self.coord, f)
 
+  def func_lin(self, f):
+    return func(self, f)
+
+
   # Data array as in the database format (19 columns)
   # time, drive, e, A, Ae, B, Be, ...
   def dbfmt(self):
@@ -101,3 +105,9 @@ def fit(data, coord=0, npars=6, do_fit=1):
 
   return ret
 
+###############################################################
+# Plot fit.
+
+def plot(ax,ay, sweep, fit, **kargs):
+  kargs['plot_lin'] = 0
+  fit_res_common.plot(ax,ay, sweep, fit, **kargs)

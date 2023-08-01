@@ -63,4 +63,46 @@ def minfunc_lor(par, coord,F,X,Y,D=1):
 
   #/numpy.linalg.norm(X + 1j*Y)
 
+###############################################################
+# Plot fit.
+# Parameters:
+# - ax,ay   - axis for X and Y (could be same)
+# - sweep   - sweep data
+# - fit_res - fit result
+# - npts    - number of points for fit plot
+# - sh      - y-shift
+# - sc      - y-scale
+
+def plot(ax,ay, sweep, fit, npts=100, sh=0, sc=1, xlabel=None, ylabel=None, plot_bg=1, plot_lin=1):
+  import matplotlib.pyplot as plt
+
+  # sweep data
+  ax.plot(sweep[:,1], sh+sc*sweep[:,2], 'r.', label=xlabel)
+  ay.plot(sweep[:,1], sh+sc*sweep[:,3], 'b.', label=ylabel)
+
+  # note that drive could be non-constant!
+  drive=numpy.mean(sweep[:,4])
+  ff=numpy.linspace(min(sweep[:,1]), max(sweep[:,1]), npts)
+
+  # fit result
+  if fit != None:
+    vv = sh*(1 + 1j) + sc*fit.func(ff, drive)
+    ax.plot(ff, numpy.real(vv), 'k-', linewidth=1)
+    ay.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
+
+  # plot also linear Lorentzian
+  if plot_lin and fit.func_lin:
+    vv = sh*(1 + 1j) + sc*fit.func_lin(ff, drive)
+    ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
+    ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
+
+  # plot background
+  if plot_bg:
+    vv = sh*(1 + 1j) + sc*drive*(fit.par[0]+1j*fit.par[1] + (fit.par[-2]+1j*fit.par[-1])*(ff-fit.par[4]))
+    ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
+    ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
+
+  ax.set_xlabel("freq, Hz")
+  if ax!=ay:
+    ay.set_xlabel("freq, Hz")
 

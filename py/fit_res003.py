@@ -95,7 +95,11 @@ class fit_res_t:
     if self.dfunc!=None:
       return fitfuncD(self.par, self.dfunc, 1, f,d)
     else:
-      return fit_res_comm.fitfunc_lor(self.par, self.coord, f,d)
+      return fit_res_common.fitfunc_lor(self.par, self.coord, f,d)
+
+  def func_lin(self, f,d):
+    return fit_res_common.fitfunc_lor(self.par, self.coord, f,d)
+
 
 ###############################################################
 # Fit frequency sweeps.
@@ -132,7 +136,7 @@ def fit(data, coord=0, npars=6, dfunc=None, do_fit=1):
       res = scipy.optimize.minimize(minfuncD, par, (dfunc, kv, FF,XX,YY,DD),
         options={'disp': False, 'maxiter': 1000})
     else:
-      res = scipy.optimize.minimize(fit_res_comm.fitfunc_lor, par, (coord, FF,XX,YY,DD),
+      res = scipy.optimize.minimize(fit_res_common.fitfunc_lor, par, (coord, FF,XX,YY,DD),
         options={'disp': False, 'maxiter': 1000})
 
     # Parameter uncertainty which corresponds to res.fun
@@ -153,35 +157,7 @@ def fit(data, coord=0, npars=6, dfunc=None, do_fit=1):
   return fit_res_t(time, e, par, err, npars, coord, dfunc)
 
 ###############################################################
-# Plot fit.
-# Parameters:
-# - ax,ay   - axis for X and Y (could be same)
-# - sweep   - sweep data
-# - fit_res - fit result
-# - npts    - number of points for fit plot
-# - sh      - y-shift
-# - sc      - y-scale
+# Plot fit
 
-def plot(ax,ay, sweep, fit, npts=100, sh=0, sc=1, xlabel=None, ylabel=None):
-  import matplotlib.pyplot as plt
-
-  # sweep data
-  ax.plot(sweep[:,1], sh+sc*sweep[:,2], 'r.', label=xlabel)
-  ay.plot(sweep[:,1], sh+sc*sweep[:,3], 'b.', label=ylabel)
-  ff=numpy.linspace(min(sweep[:,1]), max(sweep[:,1]), npts)
-  drive=numpy.mean(sweep[:,4])
-
-  # fit result
-  vv = sh*(1 + 1j) + sc*fit.func(ff, drive)
-  ax.plot(ff, numpy.real(vv), 'k-', linewidth=1)
-  ay.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
-
-  # if S-function fit is done, plot also linear Lorenztian
-  if fit.dfunc:
-    vv = sh*(1 + 1j) + sc*fit_res_comm.fitfunc_lor(fit.par, 0, ff, drive)
-    ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
-    ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
-
-  ax.set_xlabel("freq, Hz")
-  if ax!=ay:
-    ay.set_xlabel("freq, Hz")
+def plot(ax,ay, sweep, fit, **kargs):
+  fit_res_common.plot(ax,ay, sweep, fit, **kargs)
