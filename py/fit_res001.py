@@ -4,23 +4,6 @@ import scipy.optimize
 import fit_res_common
 
 ###############################################################
-# complex function used for fitting
-def fitfunc(par,coord,F):
-
-  V = (par[2] + 1j*par[3])/(par[4]**2 - F**2 + 1j*F*par[5])
-
-  if not coord: V *= 1j*F  # velocity fit
-  V += par[0] + 1j*par[1]
-
-  if len(par)==8: V += (par[6] + 1j*par[7])*(F-par[4])
-  return V
-
-# function for minimization
-def minfunc(par, coord,F,X,Y):
-  V = fitfunc(par, coord,F)
-  return numpy.linalg.norm(X + 1j*Y - V)
-
-###############################################################
 class fit_res_t:
 
   def __init__(self, time,drive,e,par,err, npars, coord):
@@ -54,7 +37,7 @@ class fit_res_t:
 
   # function
   def func(self, f):
-    return fitfunc(self.par, self.coord, f)
+    return fit_res_common.fitfunc_lor(self.par, self.coord, f)
 
   # Data array as in the database format (19 columns)
   # time, drive, e, A, Ae, B, Be, ...
@@ -95,8 +78,9 @@ def fit(data, coord=0, npars=6, do_fit=1):
     err.extend((0,0))
 
   if do_fit:
-    res = scipy.optimize.minimize(minfunc, par, (coord, FF,XX,YY),
+    res = scipy.optimize.minimize(fit_res_common.minfunc_lor, par, (coord, FF,XX,YY),
       options={'disp': False, 'maxiter': 1000})
+#    res = scipy.optimize.minimize(minfunc, par, (coord, FF,XX,YY),
 
     # Parameter uncertainty which corresponds to res.fun
     # which is relative RMS difference between function and the model.

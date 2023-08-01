@@ -43,3 +43,24 @@ def init_pars(FF,XS,YS,coord):
     D = dF*(YS[ires]-B);
 
   return (A,B,C,D,F0,dF,E,F)
+
+###############################################################
+# Normal lorentzian function:
+
+# complex function used for fitting
+def fitfunc_lor(par,coord,F,D=1):
+  V = (par[2] + 1j*par[3])*D/(par[4]**2 - F**2 + 1j*F*par[5])
+  if not coord: V *= 1j*F  # velocity fit
+  V += (par[0] + 1j*par[1])*D
+  if len(par)==8: V += (par[6] + 1j*par[7])*(F-par[4])*D
+  return V
+
+# function for minimization
+def minfunc_lor(par, coord,F,X,Y,D=1):
+  V = fitfunc_lor(par, coord,F,D)
+  print(par)
+  return numpy.linalg.norm(X + 1j*Y - V)
+
+  #/numpy.linalg.norm(X + 1j*Y)
+
+

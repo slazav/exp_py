@@ -10,20 +10,6 @@ import fit_res_common
 # - Non-linear function for low-temperature B-phase
 
 ###############################################################
-# complex function used for fitting
-def fitfunc(par,coord,F,D):
-  V = (par[2] + 1j*par[3])*D/(par[4]**2 - F**2 + 1j*F*par[5])
-  if not coord: V *= 1j*F  # velocity fit
-  V += (par[0] + 1j*par[1])*D
-  if len(par)==8: V += (par[6] + 1j*par[7])*(F-par[4])*D
-  return V
-
-# function for minimization
-def minfunc(par, coord,F,X,Y,D):
-  V = fitfunc(par, coord,F,D)
-  return numpy.linalg.norm(X + 1j*Y - V)/numpy.linalg.norm(X + 1j*Y)
-
-###############################################################
 # complex function used for fitting -- B-phase non-linear regime
 def fitfuncS(par,bphase, press, field, kv, F,D):
   if par[2]==0 and par[3]==0:
@@ -55,7 +41,7 @@ def fitfuncS(par,bphase, press, field, kv, F,D):
 # function for minimization
 def minfuncS(par, bphase, press,field, kv, F,X,Y,D):
   V = fitfuncS(par, bphase, press,field, kv, F,D)
-  return numpy.linalg.norm(X + 1j*Y - V)/numpy.linalg.norm(X + 1j*Y)
+  return numpy.linalg.norm(X + 1j*Y - V)
 
 
 ###############################################################
@@ -107,7 +93,7 @@ class fit_res_t:
     if self.bphase!=None:
       return fitfuncS(self.par, self.bphase, self.press, self.field, 1, f,d)
     else:
-      return fitfunc(self.par, self.coord, f,d)
+      return fit_res_comm.fitfunc_lor(self.par, self.coord, f,d)
 
 ###############################################################
 # Fit frequency sweeps.
@@ -144,7 +130,7 @@ def fit(data, coord=0, npars=6, bphase=None, press=0, field=0, do_fit=1):
       res = scipy.optimize.minimize(minfuncS, par, (bphase, press, field, kv, FF,XX,YY,DD),
         options={'disp': False, 'maxiter': 1000})
     else:
-      res = scipy.optimize.minimize(minfunc, par, (coord, FF,XX,YY,DD),
+      res = scipy.optimize.minimize(fit_res_comm.minfunc_lor, par, (coord, FF,XX,YY,DD),
         options={'disp': False, 'maxiter': 1000})
 
     # Parameter uncertainty which corresponds to res.fun
@@ -192,7 +178,7 @@ def plot(ax,ay, sweep, fit, npts=100, sh=0, sc=1, xlabel=None, ylabel=None):
   if fit.bphase:
     par = fit.par.copy()
     par[5] += fit.bphase.dfi(fit.field)
-    vv = sh*(1 + 1j) + sc*fitfunc(par, 0, ff, drive)
+    vv = sh*(1 + 1j) + sc*fit_res_comm.fitfunc_lor(par, 0, ff, drive)
     ax.plot(ff, numpy.real(vv), 'k--', linewidth=0.7)
     ay.plot(ff, numpy.imag(vv), 'k--', linewidth=0.7)
 
