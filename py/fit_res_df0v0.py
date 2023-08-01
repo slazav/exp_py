@@ -119,7 +119,7 @@ def fit(data, npars=7, do_fit=1):
   YY = data[:,3]/kv
   DD = data[:,4]/kd
 
-  (A,B,C,D,F0,dF,E,F) = par_init(FF, XX/DD, YY/DD, 0)
+  (A,B,C,D,F0,dF,E,F) = fit_res_common.init_pars(FF, XX/DD, YY/DD, 0)
   V0 = numpy.hypot(C,D)/dF
 
   par = [A,B,C,D,F0,dF,V0]
