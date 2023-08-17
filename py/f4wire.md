@@ -99,6 +99,7 @@ Arguments:
 Return values:
 * `TT` -- Unix time [s]
 * `F0`, `dF` -- resonance frequency and width [Hz]
+* `dF` -- uncorrected resonance width [Hz]
 * `dF0` -- corrected resonance width [Hz]
 * `FF` -- array of sweep frequencies [Hz]
 * `DD` -- drive current [A]
