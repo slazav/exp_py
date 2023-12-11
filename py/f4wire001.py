@@ -194,7 +194,7 @@ def calc_bg(bg, x, im=0):
 # subtracting background, converting voltage and current.
 # Works for both frequency sweeps and tracking data.
 #
-def get_data(name, t1, t2, use_cbg=1, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
+def get_data(name, t1, t2, use_cbg=0, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
 
   if cache != "" and os.path.isfile(cache):
     return numpy.loadtxt(cache)
