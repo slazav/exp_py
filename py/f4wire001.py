@@ -159,6 +159,23 @@ def wire_dim(name):
   return (w['D']*10, w['L']*10)
 
 ###########################################################
+# Drive-independent backgrounds
+# Should be moved to some database probably
+# Measured 20231022
+const_bg = {
+  'w1ta2': (-21.47,   -10.22),
+  'w2ta2': ( 79.29,    55.42),
+  'w1a':   (120.27,  -120.07),
+  'w2a':   (-18.17,   -65.24),
+  'w1b':   ( -2.40,   107.22),
+  'w1bh':  (-50.49,   -56.29),
+  'w2bh':  (-29.14,   -31.70),
+  'w1bt':  (-50.80,   -21.08),
+  'w2bt':  ( -8.52,    31.90)
+}
+
+
+###########################################################
 # Calculate background using standard 12-parameter model.
 #
 def calc_bg(bg, x, im=0):
@@ -177,7 +194,7 @@ def calc_bg(bg, x, im=0):
 # subtracting background, converting voltage and current.
 # Works for both frequency sweeps and tracking data.
 #
-def get_data(name, t1, t2, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
+def get_data(name, t1, t2, use_cbg=1, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
 
   if cache != "" and os.path.isfile(cache):
     return numpy.loadtxt(cache)
@@ -185,6 +202,11 @@ def get_data(name, t1, t2, use_bg=1, cnv_drive=1, cnv_volt=1, cache=""):
   # data: T,F,X,Y,D
   data = graphene.get_range(name + "_sweeps", t1, t2)
   if data.size ==0: return numpy.array(())
+
+  if use_cbg:
+    if name in const_bg:
+      data[:,2] -= const_bg[name][0]*1e-9
+      data[:,3] -= const_bg[name][1]*1e-9
 
   if use_bg:
     bg = graphene.get_prev(name + "_dbox:f2", t1)
