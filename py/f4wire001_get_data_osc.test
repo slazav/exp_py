@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+
+# test tracking mode processing
+
+import numpy
+import matplotlib.pyplot as plt
+import f4wire001 as f4wire
+
+name="w2bt"
+osc="test_data/1676931641_osc2_heating.sig"
+
+# get oscilloscope data
+osc_data = f4wire.get_data_osc(name, osc, use_bg=1, cnv_drive=1, cnv_volt=1,
+                        cache="test_cache/f4wire001_get_data_osc_1.dat")
+
+# get ADC data
+t1 = osc_data[0,0]
+t2 = osc_data[-1,0]
+adc_data = f4wire.get_data(name, t1,t2, use_bg=1, cnv_drive=1, cnv_volt=1,
+                        cache="test_cache/f4wire001_get_data_osc_2.dat")
+
+#####################################
+# plot data
+
+(fig, ax) = plt.subplots(3,1)
+
+
+a = ax[0]
+a.plot(osc_data[:,0], osc_data[:,1], 'r-', label="OSC freq")
+a.plot(adc_data[:,0], adc_data[:,1], 'm.', label="ADC freq")
+a.legend(loc="center left")
+a.set_title("freq")
+
+a = ax[1]
+a.plot(osc_data[:,0], osc_data[:,4], 'r-', label="OSC drive")
+a.plot(adc_data[:,0], adc_data[:,4], 'm.', label="ADC drive")
+a.legend(loc="center left")
+a.set_title("drive")
+
+a = ax[2]
+a.plot(osc_data[:,0], osc_data[:,2], 'r-', label="OSC drive")
+a.plot(osc_data[:,0], osc_data[:,3], 'b-', label="OSC drive")
+a.plot(adc_data[:,0], adc_data[:,2], 'm.', label="ADC drive")
+a.plot(adc_data[:,0], adc_data[:,3], 'c.', label="ADC drive")
+a.legend(loc="center left")
+a.set_title("X,Y")
+
+# save plot
+plt.gcf().set_size_inches(12, 12)
+plt.savefig("f4wire001_get_data_osc.png", dpi=100)

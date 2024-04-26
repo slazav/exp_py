@@ -23,8 +23,7 @@ def read(name):
   while 1:
     line = fo.readline().decode('ascii')
     if not line:
-      print("no data found!")
-      exit(1)
+      raise Exception("no data found!")
 
     line = re.sub(r'#.*$','',line)
     m = re.match(r'^\s+(\S+):\s*(.*)$', line)
@@ -54,9 +53,11 @@ def read(name):
     data[i,:] *= info["sc"][i]
   return (data, info)
 
-def make_tgrid(info):
+def make_tgrid(info, time_abs = False):
   npt = info["points"]
   dt  = info["dt"]
-  time=numpy.linspace(0,dt*(npt-1),npt)
+  time=numpy.linspace(0,dt*(npt-1),npt) - info["t0"]
+  if time_abs:
+    time += info["t0abs"]
   return time
 

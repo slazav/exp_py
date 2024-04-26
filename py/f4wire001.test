@@ -1,0 +1,94 @@
+#!/usr/bin/python3
+
+# test tracking mode processing
+
+import numpy
+import matplotlib.pyplot as plt
+import fit_res001 as fit_res
+import f4wire001 as f4wire
+
+t1="2023-02-11 09:25"
+t2="2023-02-11 09:30"
+name_h="w2ta2" # heater
+name_t="w2a"   # thermometer
+
+# Get tracking mode data for thermometer and heater:
+data_h = f4wire.get_data(name_h, t1, t2, cache="test_cache/f4wire001_hd.cache")
+data_t = f4wire.get_data(name_t, t1, t2, cache="test_cache/f4wire001_td.cache")
+
+# Get previous frequency sweep for thermometer and heater:
+sweep_h = f4wire.get_sweep_prev(name_h, t1, cache="test_cache/f4wire001_hs.cache")[0]
+sweep_t = f4wire.get_sweep_prev(name_t, t1, cache="test_cache/f4wire001_ts.cache")[0]
+
+# TODO: what if I want a few previous sweeps?
+
+# Fit both sweeps:
+fit_h = fit_res.fit(sweep_h, coord=1, npars=6)
+fit_t = fit_res.fit(sweep_t, coord=1, npars=6)
+
+# Process thermometer data (assuming linear regime):
+(f0t, dft) = f4wire.track_res_lin(data_t, fit_t)
+
+# Heat produced by heater and thermometer
+pwr_h = f4wire.track_heat(data_h, fit_h)
+pwr_t = f4wire.track_heat(data_t, fit_t)
+
+#####################################
+# plot data
+
+(fig, ax) = plt.subplots(2,2)
+
+# heater sweep
+a=ax[0,0]
+a.plot(sweep_h[:,1], sweep_h[:,2], 'r.', label="X")
+a.plot(sweep_h[:,1], sweep_h[:,3], 'b.', label="Y")
+ff=numpy.linspace(min(sweep_h[:,1]), max(sweep_h[:,1]), 100)
+vv=fit_h.func(ff)
+a.plot(ff, numpy.real(vv), 'k-', linewidth=1)
+a.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
+a.set_xlabel("freq, Hz")
+a.set_ylabel("volt, Vrms")
+a.set_title("heater frequency sweep")
+# thermometer sweep
+a=ax[1,0]
+a.plot(sweep_t[:,1], sweep_t[:,2], 'r.', label="X")
+a.plot(sweep_t[:,1], sweep_t[:,3], 'b.', label="Y")
+ff=numpy.linspace(min(sweep_t[:,1]), max(sweep_t[:,1]), 100)
+vv=fit_t.func(ff)
+a.plot(ff, numpy.real(vv), 'k-', linewidth=1)
+a.plot(ff, numpy.imag(vv), 'k-', linewidth=1)
+a.set_xlabel("freq, Hz")
+a.set_ylabel("volt, Vrms")
+a.set_title("thermometer frequency sweep")
+
+t0=data_t[0,0]
+
+# heat data
+a=ax[0,1]
+a.semilogy(data_h[:,0]-t0, pwr_h, label="heater")
+a.semilogy(data_t[:,0]-t0, pwr_t, label="thermometer")
+a.legend()
+a.set_xlabel("time, s")
+a.set_ylabel("power, W")
+a.grid()
+a.set_title("heating in tracking mode")
+
+# thermometer width and frequency in tracking mode
+a1=ax[1,1]
+a2=ax[1,1].twinx()
+a2.plot(data_t[:,0]-t0, f0t, 'b.-', label="f0_track")
+a2.plot(data_t[:,0]-t0, data_t[:,1], 'g.-', label="f_meas")
+a1.plot(data_t[:,0]-t0, dft, 'r.-', label="df_track")
+xx=[0, data_t[-1,0]-t0]
+a1.plot(xx, [fit_t.df]*2, 'm-', label='df_fit')
+a2.plot(xx, [fit_t.f0]*2, 'c-', label='f0_fit')
+a1.set_xlabel("time, s")
+a1.set_ylabel("df, Hz")
+a2.set_ylabel("f0, Hz")
+a1.legend(loc="center left")
+a2.legend(loc="center right")
+a.set_title("thermometer tracking mode")
+
+# save plot
+plt.gcf().set_size_inches(12, 12)
+plt.savefig("f4wire001.png", dpi=100)

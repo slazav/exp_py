@@ -6,6 +6,7 @@ import tempfile
 import os.path
 import time
 import math
+import sys
 
 sources = {
   "local":   ('device_c', 'ask', 'db'),
@@ -60,7 +61,7 @@ def timeconv(t, fmt=""):
 # Communication with graphene, read-only operations.
 # No caching, no data parsing.
 # t1 and t2 should be strings.
-def graphene_run(cmd, name, t1="0", t2='inf', dt=0):
+def graphene_run(cmd, name, t1="0", t2='inf', dt=0, verb=1):
 
   ### build command: gr_args + <command> + <db name> + <times>
   args = list(gr_args)
@@ -81,14 +82,16 @@ def graphene_run(cmd, name, t1="0", t2='inf', dt=0):
     if cmd=='get':       args.append(t2)
 
   ### run the command and load values
+  if verb>0:
+    print("Running command: ", " ".join(args), file=sys.stderr)
   proc = subprocess.Popen(args,
       stdout=subprocess.PIPE,
       stderr=subprocess.STDOUT,
       text=True)
   data = proc.stdout.read()
   if proc.wait():
-    print('> Graphene error:', data)
-    exit(1)
+    raise Exception('> Graphene error:', data)
+
   return data
 
 ###############################################################
@@ -139,7 +142,7 @@ def graphene_load(ff, unpack=False, usecols=None, raw=0):
 ###############################################################
 ### Do arbitrary graphene command, read output, cache data
 def graphene_cmd(cmd, name, t1="0", t2='inf',
-                 dt=0, unpack=False, usecols=None, raw=False, cache=""):
+                 dt=0, unpack=False, usecols=None, raw=False, cache="", verb=1):
 
   t1 = timeconv(t1)
   t2 = timeconv(t2)
@@ -147,12 +150,14 @@ def graphene_cmd(cmd, name, t1="0", t2='inf',
   ### do we want to use cache?
   if cache != "":
     if os.path.isfile(cache):
+      if verb>0:
+        print("Using cache: ", cache, file=sys.stderr)
       ff = open(cache)
       return graphene_load(ff, usecols=usecols, unpack=unpack, raw=raw)
     ff = open(cache, "w+")
   else: ff = tempfile.TemporaryFile(mode="w+")
 
-  data = graphene_run(cmd, name, t1, t2, dt)
+  data = graphene_run(cmd, name, t1, t2, dt, verb=verb)
   print(data, file=ff)
   ff.seek(0)
 

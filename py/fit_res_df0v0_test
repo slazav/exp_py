@@ -1,0 +1,45 @@
+#!/usr/bin/python3
+
+import numpy
+import matplotlib.pyplot as plt
+import fit_res_df0v0 as fit_res
+import f4wire001 as f4wire
+
+t1='2023-02-09 14:46'
+t2='2023-02-09 16:44'
+#t2='2023-02-09 17:35' # non-linear
+name="w1bt"
+#wire = f4wire.wire_info_t(name)
+
+# Get all sweeps
+sweeps = f4wire.get_sweep_range(name, t1, t2, cache="test_cache/fit_res002_bphase.cache")
+
+# fit all data
+data = numpy.row_stack(sweeps)
+fit = fit_res.fit(data, npars=7, do_fit=1)
+
+# plot data
+(fig, ax) = plt.subplots(1,2)
+n=0
+for s in sweeps:
+  n+=1
+  drive = numpy.mean(s[:,4])
+  sh=5*n
+  sc=1/drive
+  npts=200
+  fit_res.plot(ax[0], ax[1], s, fit, sc=sc, sh=sh, npts=npts)
+
+  #individual fits (green curve)
+  fit1 = fit_res.fit(s, npars=7, do_fit=1)
+  ff=numpy.linspace(min(s[:,1]), max(s[:,1]), npts)
+  vv = sh*(1 + 1j) + sc*fit1.func(ff, drive)
+  ax[0].plot(ff, numpy.real(vv), 'g-', linewidth=1)
+  ax[1].plot(ff, numpy.imag(vv), 'g-', linewidth=1)
+#  print(fit1.par)
+
+
+
+ax[0].set_ylabel('Vx/I [V/A]')
+ax[1].set_ylabel('Vy/I [V/A]')
+plt.gcf().set_size_inches(12, 6)
+plt.savefig("fit_res_df0v0.png", dpi=100)
