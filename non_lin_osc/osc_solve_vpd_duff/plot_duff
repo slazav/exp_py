@@ -15,6 +15,8 @@ tau = 5
 aa = [-0.015, 0, 0.02, 0.1]
 F  = 1
 
+(fig, ax) = plt.subplots(1,2)
+
 for a in aa:
 
   # go left->right or back depending on sign of a:
@@ -26,6 +28,7 @@ for a in aa:
   amp0 = numpy.zeros(ww.size)
   amp1 = numpy.zeros(ww.size)
   amp2 = numpy.zeros(ww.size)
+  ph0  = numpy.zeros(ww.size)
   ph1  = numpy.zeros(ww.size)
   ph2  = numpy.zeros(ww.size)
 
@@ -34,7 +37,9 @@ for a in aa:
 
     # analytical solution (min branch)
     rr = osc_duff_amp(w,F,w0,tau, a)/F
-    amp0[i] = numpy.min(rr)
+    ii = numpy.argmin(abs(rr))
+    amp0[i] = numpy.abs(rr[ii])
+    ph0[i]  = numpy.angle(rr[ii])
 
     # use prefious point as initial condition:
     if i>0 or not numpy.isnan(amp1[i-1]):
@@ -50,11 +55,17 @@ for a in aa:
     amp2[i] = numpy.hypot(uv[0],uv[1])/F
     ph2[i]  = numpy.arctan2(uv[1],uv[0])
 
-  plt.plot(ww, amp0, 'k--')
-  plt.plot(ww, amp1, 'r-')
-  plt.plot(ww, amp2, 'b-')
+  ax[0].plot(ww, amp1, 'r-')
+  ax[0].plot(ww, amp2, 'b-')
+  ax[0].plot(ww, amp0, 'k--', linewidth=0.8)
 
-plt.xlabel('frequency')
-plt.ylabel('amplitude/drive')
+  ax[1].plot(ww, ph1, 'r-')
+  ax[1].plot(ww, ph2, 'b-')
+  ax[1].plot(ww, ph0, 'k--', linewidth=0.8)
+
+ax[0].set_xlabel('frequency')
+ax[1].set_xlabel('frequency')
+ax[0].set_title('amplitude/drive')
+ax[1].set_title('phase')
 plt.legend()
 plt.savefig('plot_duff.png')

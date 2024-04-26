@@ -180,6 +180,7 @@ def osc_solve_vdp_duff(w0, tau, a, F, w, a0=0, p0=0):
 # Returns up to 3 numbers
 #
 def osc_duff_amp(w,F,w0,tau, a):
-  p = [9/16.0*a**2,  - 3/2.0*(w**2-w0**2)*a, (w**2-w0**2)**2 + (w/tau)**2, -F**2]
+  p = [9/16.0*a**2,  3/2.0*(w0**2-w**2)*a, (w**2-w0**2)**2 + (w/tau)**2, -F**2]
   rr = numpy.sqrt(numpy.roots(p))
-  return numpy.real(rr[numpy.imag(rr)==0])
+  rr = numpy.real(rr[numpy.imag(rr)==0])
+  return ((w0**2-w**2 - 1j*w/tau)*rr**2 + 3/4.0*a*rr**4)/F
